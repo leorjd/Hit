@@ -28,6 +28,7 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
 html{background:radial-gradient(ellipse at center, #2a3300 0%, #0a0a0a 70%);}
+body{background:transparent;}
 body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 
 /* ── SCREENS ── */
@@ -531,46 +532,39 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 
   <div class="screen-body" style="padding-top:16px;">
 
-    <!-- Exercise chip tags -->
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="ex-chips"></div>
+    <!-- GIF -->
+    <div id="ex-svg-container" style="margin-bottom:12px;border-radius:var(--radius-lg);overflow:hidden;min-height:180px;background:#111;display:flex;align-items:center;justify-content:center;"></div>
 
     <!-- Exercise name -->
-    <div class="display-lg accent" id="ex-name" style="margin-bottom:4px;line-height:1.05;">SENTADILLA</div>
-    <div class="label" id="ex-sets" style="margin-bottom:16px;color:var(--hit-green-dark);">3 SERIES · 12 REPS</div>
+    <div class="display-lg accent" id="ex-name" style="margin-bottom:2px;line-height:1.05;text-align:center;">SENTADILLA</div>
+    <div class="label" id="ex-sets" style="margin-bottom:12px;color:var(--hit-green-dark);text-align:center;">5 SERIES · 12 REPS</div>
 
-    <!-- SVG Animation -->
-    <div id="ex-svg-container" style="margin-bottom:16px;background:#111;border-radius:var(--radius-lg);padding:20px;border:1px solid #2a2a2a;min-height:200px;display:flex;align-items:center;justify-content:center;"></div>
+    <!-- Chips -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:center;" id="ex-chips"></div>
 
     <!-- Description -->
     <div class="card-dark" style="margin-bottom:16px;">
-      <div class="label" style="margin-bottom:6px;">Cómo hacerlo</div>
-      <p id="ex-desc" style="font-size:13px;line-height:1.7;color:#ccc;"></p>
+      <p id="ex-desc" style="font-size:13px;line-height:1.7;color:#ccc;text-align:center;"></p>
     </div>
 
-    <!-- Timer -->
-    <div id="ex-timer-section" style="display:none;margin-bottom:16px;">
-      <div class="label" style="margin-bottom:12px;text-align:center;">TEMPORIZADOR</div>
-      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-        <div class="timer-ring">
-          <svg width="140" height="140" viewBox="0 0 140 140">
-            <circle class="timer-circle-bg" cx="70" cy="70" r="60"/>
-            <circle class="timer-circle-fill" id="timer-circle" cx="70" cy="70" r="60"
-              stroke-dasharray="376.99" stroke-dashoffset="0"/>
-          </svg>
-          <div class="timer-text">
-            <div style="font-family:var(--font-display);font-size:42px;color:var(--hit-green);line-height:1;" id="timer-display">0:30</div>
-            <div class="label">seg</div>
-          </div>
-        </div>
-        <div style="display:flex;gap:10px;">
-          <button class="btn-ghost" style="width:auto;padding:10px 20px;" onclick="toggleTimer()" id="timer-btn">▶ INICIAR</button>
-          <button class="btn-ghost" style="width:auto;padding:10px 20px;" onclick="resetTimer()">↺ RESET</button>
+    <!-- Auto timer -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px;">
+      <div id="ex-phase-label" style="font-family:var(--font-display);font-size:22px;color:#fff;letter-spacing:2px;text-align:center;">PREPÁRATE</div>
+      <div id="ex-phase-sub" style="font-size:12px;color:var(--hit-gray-light);text-align:center;letter-spacing:1px;"></div>
+      <div class="timer-ring">
+        <svg width="130" height="130" viewBox="0 0 140 140">
+          <circle class="timer-circle-bg" cx="70" cy="70" r="60"/>
+          <circle class="timer-circle-fill" id="timer-circle" cx="70" cy="70" r="60"
+            stroke-dasharray="376.99" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-text">
+          <div style="font-family:var(--font-display);font-size:42px;color:var(--hit-green);line-height:1;" id="timer-display">0:10</div>
         </div>
       </div>
     </div>
 
-    <!-- Next button -->
-    <button class="btn-primary" onclick="nextExercise()" id="ex-next-btn">SIGUIENTE EJERCICIO →</button>
+    <!-- Next button (temp, will remove later) -->
+    <button class="btn-outline" onclick="nextExercise()" id="ex-next-btn">SIGUIENTE →</button>
 
   </div>
 </div>
@@ -767,15 +761,13 @@ let workoutStartTime = null;
 let selectedMode = 'fast';
 let workoutKcal = 0;
 
-// Timer state
-let timerInterval = null;
-let timerSeconds = 30;
-let timerTotal = 30;
-let timerRunning = false;
-
-// Rest timer
-let restInterval = null;
-let restSeconds = 30;
+// Auto-run state
+let autoInterval = null;
+let autoSeconds = 0;
+let autoTotal = 0;
+let currentSerie = 0;
+let autoPhase = 'prep'; // prep | exercise | rest | transition
+let autoSide = 'left'; // left | right (for side exercises)
 
 // ═══════════════════════════════════════
 // PERSISTENCE
@@ -956,19 +948,23 @@ async function generateWorkout() {
   const prompt = `Eres un entrenador personal experto. Genera una rutina de ejercicio en casa para hoy ${today}.
 
 DATOS DEL USUARIO:
-- Nivel: Intermedio (hace ejercicio ocasionalmente)
-- Duración: ${duration}
-- Equipamiento disponible: cuerpo (sin equipo), mancuernas, caminadora doméstica
-- Objetivo: Mix de fuerza, tonificación y cardio
+- Nivel: Intermedio
+- Duración objetivo: ${duration} (puede pasarse)
+- Equipamiento: cuerpo, mancuernas, caminadora doméstica
+- Objetivo: Mix intenso de fuerza y cardio
 
-INSTRUCCIONES:
-- Genera exactamente ${selectedMode === 'fast' ? 6 : 8} ejercicios
-- Varía el tipo: fuerza con mancuernas, bodyweight, cardio, caminadora
-- Incluye calentamiento y enfriamiento
-- Para la caminadora, especifica velocidad e inclinación sugerida
-- Cada ejercicio debe ser diferente y específico para este día
+INSTRUCCIONES IMPORTANTES:
+- Genera exactamente ${selectedMode === 'fast' ? 10 : 15} ejercicios
+- Alterna intensidad: 2 ejercicios fuertes, 1 moderado para recuperar
+- 5 series por ejercicio (excepto caminadora que es 1 serie larga)
+- Varía: fuerza con mancuernas, bodyweight, cardio, core, caminadora
+- Para ejercicios por lado (ej. zancadas), indica "por lado" en reps
+- Para la caminadora especifica velocidad e inclinación
+- duration_seconds es el tiempo de UNA serie del ejercicio
+- Si es ejercicio por lado: duration_seconds es el tiempo de UN LADO
+- side_exercise: true si se hace por lado (izquierdo y derecho por separado)
 
-RESPONDE ÚNICAMENTE con un JSON válido, sin texto adicional, con este formato exacto:
+RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
 {
   "focus": "FUERZA TOTAL",
   "exercises": [
@@ -976,11 +972,13 @@ RESPONDE ÚNICAMENTE con un JSON válido, sin texto adicional, con este formato 
       "name": "NOMBRE EN MAYÚSCULAS",
       "type": "strength|cardio|treadmill|core|stretch",
       "equipment": "bodyweight|dumbbell|treadmill",
-      "sets": 3,
+      "sets": 5,
       "reps": "12",
       "duration_seconds": 40,
-      "kcal_per_set": 8,
-      "description": "Descripción clara de cómo ejecutar el ejercicio correctamente en 2-3 oraciones.",
+      "side_exercise": false,
+      "kcal_per_set": 10,
+      "gif_search": "palabra clave corta para buscar GIF del ejercicio en inglés",
+      "description": "Descripción clara en 2 oraciones de cómo ejecutarlo correctamente.",
       "muscles": ["músculo1", "músculo2"]
     }
   ]
@@ -1033,17 +1031,46 @@ function getFallbackWorkout(mode) {
 }
 
 // ═══════════════════════════════════════
-// EXERCISE DISPLAY
+// EXERCISE DISPLAY & AUTO-RUN
 // ═══════════════════════════════════════
+const GIF_MAP = {
+  'squat': 'https://media.giphy.com/media/3o7TKsQ8MoXPLpHF3i/giphy.gif',
+  'push': 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif',
+  'lunge': 'https://media.giphy.com/media/3o6Zt6UGVrVIZF4hqo/giphy.gif',
+  'plank': 'https://media.giphy.com/media/3o7TKsQ8MoXPLpHF3i/giphy.gif',
+  'curl': 'https://media.giphy.com/media/xT9IgHqFQRwGJX4K6A/giphy.gif',
+  'press': 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif',
+  'treadmill': 'https://media.giphy.com/media/3o7TKsQ8MoXPLpHF3i/giphy.gif',
+  'jump': 'https://media.giphy.com/media/3o6Zt6UGVrVIZF4hqo/giphy.gif',
+  'default': 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif'
+};
+
+async function fetchGif(searchTerm) {
+  try {
+    const query = encodeURIComponent(searchTerm + ' exercise');
+    const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=sXpGFDGZs0Dv1mmNFvYaGUvYwKX0PWIh&q=${query}&limit=1&rating=g`);
+    const data = await res.json();
+    if (data.data && data.data.length > 0) {
+      return data.data[0].images.downsized.url;
+    }
+  } catch(e) {}
+  // fallback: use a known working exercise gif based on keywords
+  const term = searchTerm.toLowerCase();
+  for (const key of Object.keys(GIF_MAP)) {
+    if (term.includes(key)) return GIF_MAP[key];
+  }
+  return GIF_MAP['default'];
+}
+
 function showExercise(index) {
-  stopTimer();
+  clearInterval(autoInterval);
   const ex = currentWorkout[index];
   const total = currentWorkout.length;
 
   document.getElementById('ex-count').textContent = `Ejercicio ${index + 1} / ${total}`;
-  document.getElementById('ex-progress').style.width = `${((index) / total) * 100}%`;
+  document.getElementById('ex-progress').style.width = `${(index / total) * 100}%`;
   document.getElementById('ex-name').textContent = ex.name;
-  document.getElementById('ex-sets').textContent = `${ex.sets > 1 ? ex.sets + ' SERIES · ' : ''}${ex.reps}`;
+  document.getElementById('ex-sets').textContent = `${ex.sets} SERIES · ${ex.reps}`;
   document.getElementById('ex-desc').textContent = ex.description;
 
   // Chips
@@ -1056,267 +1083,122 @@ function showExercise(index) {
     chips.appendChild(chip);
   });
 
-  // SVG Animation
-  document.getElementById('ex-svg-container').innerHTML = getExerciseSVG(ex.type, ex.equipment);
+  // GIF
+  const gifContainer = document.getElementById('ex-svg-container');
+  gifContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:180px;color:#3A3A3A;font-size:12px;">Cargando...</div>';
+  fetchGif(ex.gif_search || ex.name).then(url => {
+    gifContainer.innerHTML = `<img src="${url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;" onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#3A3A3A;\'>💪</div>'"/>`;
+  });
 
-  // Timer
-  const timerSection = document.getElementById('ex-timer-section');
-  if (ex.duration_seconds && ex.duration_seconds <= 120) {
-    timerSection.style.display = 'block';
-    timerSeconds = ex.duration_seconds;
-    timerTotal = ex.duration_seconds;
-    timerRunning = false;
-    updateTimerDisplay();
-    document.getElementById('timer-btn').textContent = '▶ INICIAR';
-  } else {
-    timerSection.style.display = 'none';
-  }
-
-  // Next button
+  // Next button text
   const nextBtn = document.getElementById('ex-next-btn');
-  if (index === total - 1) {
-    nextBtn.textContent = '¡TERMINAR ENTRENAMIENTO! 🏆';
-  } else {
-    nextBtn.textContent = 'SIGUIENTE EJERCICIO →';
-  }
+  nextBtn.textContent = index === total - 1 ? '¡TERMINAR! 🏆' : 'SIGUIENTE →';
 
   goTo('screen-exercise');
+
+  // Start auto-run: 10sec prep then first serie
+  currentSerie = 1;
+  autoSide = 'left';
+  startPhase('prep');
 }
 
-function getExerciseSVG(type, equipment) {
-  const svgs = {
-    strength_dumbbell: `
-      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
-        <!-- Body -->
-        <circle cx="100" cy="50" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-        <!-- Torso -->
-        <rect x="85" y="68" width="30" height="45" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-        <!-- Left arm with dumbbell -->
-        <g style="animation:curl 1.5s ease-in-out infinite;transform-origin:75px 80px;">
-          <rect x="40" y="75" width="35" height="8" rx="4" fill="#3A3A3A"/>
-          <rect x="32" y="70" width="10" height="18" rx="4" fill="#D6FF00"/>
-          <rect x="72" y="72" width="6" height="14" rx="3" fill="#D6FF00"/>
-        </g>
-        <!-- Right arm with dumbbell -->
-        <g style="animation:curl 1.5s ease-in-out infinite .4s;transform-origin:125px 80px;">
-          <rect x="125" y="75" width="35" height="8" rx="4" fill="#3A3A3A"/>
-          <rect x="158" y="70" width="10" height="18" rx="4" fill="#D6FF00"/>
-          <rect x="122" y="72" width="6" height="14" rx="3" fill="#D6FF00"/>
-        </g>
-        <!-- Legs -->
-        <rect x="86" y="110" width="12" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-        <rect x="102" y="110" width="12" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-        <!-- Feet -->
-        <rect x="80" y="160" width="20" height="8" rx="4" fill="#D6FF00"/>
-        <rect x="97" y="160" width="20" height="8" rx="4" fill="#D6FF00"/>
-        <!-- Floor -->
-        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
-      </svg>`,
-    strength_bodyweight: `
-      <svg class="exercise-svg" viewBox="0 0 200 220" style="height:180px;">
-        <g style="animation:squat 1.8s ease-in-out infinite;transform-origin:100px 120px;">
-          <!-- Head -->
-          <circle cx="100" cy="45" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-          <!-- Torso -->
-          <rect x="82" y="63" width="36" height="50" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <!-- Arms -->
-          <rect x="55" y="65" width="28" height="8" rx="4" fill="#3A3A3A" transform="rotate(30,55,65)"/>
-          <rect x="117" y="65" width="28" height="8" rx="4" fill="#3A3A3A" transform="rotate(-30,145,65)"/>
-          <!-- Legs -->
-          <rect x="84" y="110" width="14" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <rect x="102" y="110" width="14" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <!-- Feet -->
-          <rect x="76" y="160" width="24" height="9" rx="4" fill="#D6FF00"/>
-          <rect x="100" y="160" width="24" height="9" rx="4" fill="#D6FF00"/>
-        </g>
-        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
-      </svg>`,
-    treadmill: `
-      <svg class="exercise-svg" viewBox="0 0 220 200" style="height:180px;">
-        <!-- Treadmill base -->
-        <rect x="20" y="150" width="180" height="16" rx="6" fill="#1C1C1C" stroke="#2a2a2a" stroke-width="1.5"/>
-        <rect x="30" y="138" width="160" height="14" rx="4" fill="#2a2a2a"/>
-        <!-- Belt lines animated -->
-        <rect x="40" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".6" style="animation:walk 0.8s linear infinite;"/>
-        <rect x="90" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".4" style="animation:walk 0.8s linear infinite .2s;"/>
-        <rect x="140" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".6" style="animation:walk 0.8s linear infinite .4s;"/>
-        <!-- Handles -->
-        <rect x="60" y="70" width="8" height="80" rx="4" fill="#3A3A3A"/>
-        <rect x="152" y="70" width="8" height="80" rx="4" fill="#3A3A3A"/>
-        <rect x="60" y="70" width="100" height="8" rx="4" fill="#2a2a2a"/>
-        <!-- Console -->
-        <rect x="75" y="58" width="70" height="14" rx="4" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1"/>
-        <circle cx="95" cy="65" r="3" fill="#D6FF00"/>
-        <circle cx="110" cy="65" r="3" fill="#D6FF00" opacity=".5"/>
-        <circle cx="125" cy="65" r="3" fill="#D6FF00" opacity=".3"/>
-        <!-- Walking person -->
-        <g style="animation:walk 1s ease-in-out infinite;transform-origin:110px 120px;">
-          <circle cx="110" cy="85" r="13" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-          <rect x="100" y="98" width="20" height="35" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <line x1="100" y1="103" x2="82" y2="118" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
-          <line x1="120" y1="103" x2="138" y2="118" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
-          <line x1="105" y1="133" x2="98" y2="152" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
-          <line x1="115" y1="133" x2="122" y2="152" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
-        </g>
-      </svg>`,
-    cardio: `
-      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
-        <g style="animation:jump 1.2s ease-in-out infinite;transform-origin:100px 120px;">
-          <circle cx="100" cy="42" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-          <rect x="83" y="60" width="34" height="48" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <!-- Arms spread -->
-          <line x1="83" y1="72" x2="52" y2="90" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
-          <line x1="117" y1="72" x2="148" y2="90" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
-          <!-- Legs spread -->
-          <line x1="92" y1="108" x2="72" y2="155" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
-          <line x1="108" y1="108" x2="128" y2="155" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
-          <!-- Feet -->
-          <rect x="60" y="152" width="20" height="8" rx="4" fill="#D6FF00"/>
-          <rect x="120" y="152" width="20" height="8" rx="4" fill="#D6FF00"/>
-        </g>
-        <!-- Motion lines -->
-        <line x1="145" y1="100" x2="160" y2="100" stroke="#D6FF00" stroke-width="2" opacity=".4" stroke-dasharray="4,4"/>
-        <line x1="40" y1="100" x2="55" y2="100" stroke="#D6FF00" stroke-width="2" opacity=".4" stroke-dasharray="4,4"/>
-        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
-      </svg>`,
-    core: `
-      <svg class="exercise-svg" viewBox="0 0 220 160" style="height:160px;">
-        <g style="animation:plank 2s ease-in-out infinite;transform-origin:110px 100px;">
-          <!-- Plank body -->
-          <ellipse cx="110" cy="95" rx="65" ry="12" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <!-- Head -->
-          <circle cx="170" cy="88" r="14" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-          <!-- Arms support -->
-          <rect x="140" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
-          <rect x="160" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
-          <!-- Feet -->
-          <rect x="42" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
-          <rect x="58" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
-          <!-- Core highlight -->
-          <rect x="88" y="88" width="40" height="14" rx="4" fill="rgba(214,255,0,.15)" stroke="#D6FF00" stroke-width="1" stroke-dasharray="3,3"/>
-        </g>
-        <line x1="20" y1="130" x2="200" y2="130" stroke="#2a2a2a" stroke-width="2"/>
-      </svg>`,
-    stretch: `
-      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
-        <!-- Stretching figure -->
-        <circle cx="100" cy="45" r="16" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
-        <!-- Torso tilted -->
-        <g style="animation:situp 3s ease-in-out infinite;transform-origin:100px 90px;">
-          <rect x="86" y="60" width="28" height="42" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-          <line x1="86" y1="72" x2="55" y2="55" stroke="#D6FF00" stroke-width="3.5" stroke-linecap="round"/>
-          <line x1="114" y1="72" x2="145" y2="55" stroke="#D6FF00" stroke-width="3.5" stroke-linecap="round"/>
-        </g>
-        <!-- Legs straight -->
-        <rect x="87" y="100" width="12" height="60" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-        <rect x="101" y="100" width="12" height="60" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
-        <rect x="80" y="156" width="22" height="8" rx="4" fill="#D6FF00"/>
-        <rect x="98" y="156" width="22" height="8" rx="4" fill="#D6FF00"/>
-        <!-- Glow effect -->
-        <circle cx="100" cy="100" r="70" fill="none" stroke="#D6FF00" stroke-width="1" opacity=".05"/>
-        <line x1="30" y1="172" x2="170" y2="172" stroke="#2a2a2a" stroke-width="2"/>
-      </svg>`
-  };
+function startPhase(phase) {
+  clearInterval(autoInterval);
+  autoPhase = phase;
+  const ex = currentWorkout[currentExIndex];
 
-  const key = `${type}_${equipment}`;
-  return svgs[key] || svgs[type] || svgs['strength_bodyweight'];
+  if (phase === 'prep') {
+    autoTotal = 10;
+    autoSeconds = 10;
+    updateAutoDisplay('PREPÁRATE', '#fff', `Serie ${currentSerie} de ${ex.sets}`);
+  } else if (phase === 'exercise') {
+    autoTotal = ex.duration_seconds || 40;
+    autoSeconds = autoTotal;
+    const sideLabel = ex.side_exercise ? (autoSide === 'left' ? ' — LADO IZQUIERDO' : ' — LADO DERECHO') : '';
+    updateAutoDisplay(ex.name + sideLabel, '#D6FF00', `Serie ${currentSerie}/${ex.sets} · ${ex.reps}`);
+  } else if (phase === 'rest') {
+    autoTotal = 8;
+    autoSeconds = 8;
+    updateAutoDisplay('DESCANSA', '#fff', `Siguiente: Serie ${currentSerie} de ${ex.sets}`);
+  } else if (phase === 'transition') {
+    autoTotal = 10;
+    autoSeconds = 10;
+    const next = currentWorkout[currentExIndex + 1];
+    updateAutoDisplay('DESCANSA', '#fff', next ? `Próximo: ${next.name}` : '¡Último ejercicio!');
+  }
+
+  autoInterval = setInterval(() => {
+    autoSeconds--;
+    updateTimerRing();
+    if (autoSeconds <= 0) {
+      clearInterval(autoInterval);
+      nextPhase();
+    }
+  }, 1000);
+  updateTimerRing();
 }
 
-// ═══════════════════════════════════════
-// TIMER
-// ═══════════════════════════════════════
-function toggleTimer() {
-  if (timerRunning) {
-    stopTimer();
-    document.getElementById('timer-btn').textContent = '▶ CONTINUAR';
-  } else {
-    startTimer();
-    document.getElementById('timer-btn').textContent = '⏸ PAUSAR';
+function nextPhase() {
+  const ex = currentWorkout[currentExIndex];
+
+  if (autoPhase === 'prep') {
+    startPhase('exercise');
+  } else if (autoPhase === 'exercise') {
+    if (ex.side_exercise && autoSide === 'left') {
+      autoSide = 'right';
+      startPhase('prep');
+    } else {
+      workoutKcal += (ex.kcal_per_set || 8);
+      if (currentSerie < ex.sets) {
+        currentSerie++;
+        autoSide = 'left';
+        startPhase('rest');
+      } else {
+        // All series done
+        workoutKcal += (ex.kcal_per_set || 8) * (ex.sets - 1);
+        if (currentExIndex >= currentWorkout.length - 1) {
+          finishWorkout();
+        } else {
+          startPhase('transition');
+        }
+      }
+    }
+  } else if (autoPhase === 'rest') {
+    autoSide = 'left';
+    startPhase('prep');
+  } else if (autoPhase === 'transition') {
+    currentExIndex++;
+    showExercise(currentExIndex);
   }
 }
 
-function startTimer() {
-  timerRunning = true;
-  timerInterval = setInterval(() => {
-    timerSeconds--;
-    updateTimerDisplay();
-    if (timerSeconds <= 0) {
-      stopTimer();
-      document.getElementById('timer-btn').textContent = '✓ LISTO';
-    }
-  }, 1000);
+function updateAutoDisplay(label, color, sublabel) {
+  document.getElementById('ex-phase-label').textContent = label;
+  document.getElementById('ex-phase-label').style.color = color;
+  document.getElementById('ex-phase-sub').textContent = sublabel;
+  document.getElementById('timer-circle').style.stroke = color;
 }
 
-function stopTimer() {
-  clearInterval(timerInterval);
-  timerRunning = false;
-}
-
-function resetTimer() {
-  stopTimer();
-  timerSeconds = timerTotal;
-  timerRunning = false;
-  document.getElementById('timer-btn').textContent = '▶ INICIAR';
-  updateTimerDisplay();
-}
-
-function updateTimerDisplay() {
-  const min = Math.floor(timerSeconds / 60);
-  const sec = timerSeconds % 60;
+function updateTimerRing() {
+  const min = Math.floor(autoSeconds / 60);
+  const sec = autoSeconds % 60;
   document.getElementById('timer-display').textContent = `${min}:${sec.toString().padStart(2,'0')}`;
-  // Ring
   const circumference = 376.99;
-  const progress = timerSeconds / timerTotal;
-  const offset = circumference * (1 - progress);
-  document.getElementById('timer-circle').style.strokeDashoffset = offset;
+  const progress = autoSeconds / autoTotal;
+  document.getElementById('timer-circle').style.strokeDashoffset = circumference * (1 - progress);
 }
 
-// ═══════════════════════════════════════
-// NEXT EXERCISE / REST
-// ═══════════════════════════════════════
 function nextExercise() {
-  stopTimer();
+  clearInterval(autoInterval);
+  // Accumulate remaining kcal
   const ex = currentWorkout[currentExIndex];
-  // Accumulate kcal
-  workoutKcal += (ex.kcal_per_set || 8) * (ex.sets || 1);
-
+  workoutKcal += (ex.kcal_per_set || 8) * ex.sets;
   if (currentExIndex >= currentWorkout.length - 1) {
     finishWorkout();
-    return;
+  } else {
+    currentExIndex++;
+    showExercise(currentExIndex);
   }
-
-  // Show rest screen
-  const nextEx = currentWorkout[currentExIndex + 1];
-  document.getElementById('rest-next-label').textContent = `Próximo: ${nextEx.name}`;
-  restSeconds = 30;
-  startRestTimer();
-  goTo('screen-rest');
-}
-
-function startRestTimer() {
-  clearInterval(restInterval);
-  updateRestDisplay();
-  restInterval = setInterval(() => {
-    restSeconds--;
-    updateRestDisplay();
-    if (restSeconds <= 0) {
-      clearInterval(restInterval);
-      currentExIndex++;
-      showExercise(currentExIndex);
-    }
-  }, 1000);
-}
-
-function updateRestDisplay() {
-  const min = Math.floor(restSeconds / 60);
-  const sec = restSeconds % 60;
-  document.getElementById('rest-timer').textContent = `${min}:${sec.toString().padStart(2,'0')}`;
-}
-
-function skipRest() {
-  clearInterval(restInterval);
-  currentExIndex++;
-  showExercise(currentExIndex);
 }
 
 // ═══════════════════════════════════════
@@ -1403,8 +1285,7 @@ function closeQuit() {
   document.getElementById('overlay-quit').classList.remove('open');
 }
 function quitWorkout() {
-  stopTimer();
-  clearInterval(restInterval);
+  clearInterval(autoInterval);
   document.getElementById('overlay-quit').classList.remove('open');
   loadHome();
   goTo('screen-home');
