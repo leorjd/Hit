@@ -26,12 +26,8 @@
   --radius-xl:  24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;}
-html{background:#0a0a0a;}
-body{
-  background:#0a0a0a;
-  font-family:var(--font-body);color:#fff;touch-action:manipulation;
-}
+html,body{height:100%;overflow:hidden;background:#0a0a0a;}
+body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 
 /* ── SCREENS ── */
 .screen{
@@ -118,7 +114,7 @@ body{
 
 /* ── CARDS ── */
 .card{background:var(--hit-carbon);border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:20px;}
-.card-dark{background:#111;border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:20px;}
+.card-dark{background:#151515;border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:20px;}
 
 /* ── STAT CARD ── */
 .stat-card{background:var(--hit-carbon);border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:4px;}
@@ -210,7 +206,7 @@ body{
 }
 .overlay.open{opacity:1;pointer-events:all;}
 .modal{
-  background:#111;border:1px solid #2a2a2a;
+  background:#0a0a0a;border:1px solid #2a2a2a;
   border-radius:var(--radius-xl) var(--radius-xl) 0 0;
   padding:28px 24px calc(28px + env(safe-area-inset-bottom,0px));
   width:100%;max-width:500px;
