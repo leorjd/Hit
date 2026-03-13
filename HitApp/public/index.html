@@ -26,7 +26,8 @@
   --radius-xl:  24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;background:#0a0a0a;}
+html,body{height:100%;overflow:hidden;}
+html{background:radial-gradient(ellipse at center, #2a3300 0%, #0a0a0a 70%);}
 body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 
 /* ── SCREENS ── */
@@ -35,7 +36,7 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
   top:0;left:50%;transform:translateX(-50%) translateY(20px);
   width:100%;max-width:480px;height:100%;
   display:flex;flex-direction:column;
-  background:#0a0a0a;
+  background:transparent;
   opacity:0;pointer-events:none;
   transition:opacity .3s ease, transform .3s ease;
   overflow:hidden;
