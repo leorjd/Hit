@@ -218,7 +218,7 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 
 /* ── TOAST ── */
 .toast{
-  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-200px);
   background:var(--hit-carbon);border-left:3px solid var(--hit-green);
   border-radius:var(--radius-md);padding:12px 18px;
   min-width:260px;z-index:200;transition:transform .4s ease;
@@ -954,15 +954,17 @@ DATOS DEL USUARIO:
 - Objetivo: Mix intenso de fuerza y cardio
 
 INSTRUCCIONES IMPORTANTES:
-- Genera exactamente ${selectedMode === 'fast' ? 10 : 15} ejercicios
+- Genera EXACTAMENTE 15 ejercicios, sin importar el tiempo que tome
 - Alterna intensidad: 2 ejercicios fuertes, 1 moderado para recuperar
-- 5 series por ejercicio (excepto caminadora que es 1 serie larga)
+- 5 series por ejercicio (excepto caminadora que es 1 serie larga y estiramiento)
+- El estiramiento final debe tener duration_seconds: 120 (2 minutos)
 - Varía: fuerza con mancuernas, bodyweight, cardio, core, caminadora
 - Para ejercicios por lado (ej. zancadas), indica "por lado" en reps
 - Para la caminadora especifica velocidad e inclinación
 - duration_seconds es el tiempo de UNA serie del ejercicio
 - Si es ejercicio por lado: duration_seconds es el tiempo de UN LADO
 - side_exercise: true si se hace por lado (izquierdo y derecho por separado)
+- description debe ser pasos numerados: "1. Haz esto. 2. Luego esto. 3. Así termina."
 
 RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
 {
@@ -1142,33 +1144,33 @@ function nextPhase() {
   const ex = currentWorkout[currentExIndex];
 
   if (autoPhase === 'prep') {
+    // prep only at start of exercise, then go straight to exercise
     startPhase('exercise');
   } else if (autoPhase === 'exercise') {
     if (ex.side_exercise && autoSide === 'left') {
+      // side exercise: no rest between left->right, just 8s
       autoSide = 'right';
-      startPhase('prep');
+      startPhase('rest');
     } else {
       workoutKcal += (ex.kcal_per_set || 8);
       if (currentSerie < ex.sets) {
         currentSerie++;
         autoSide = 'left';
-        startPhase('rest');
+        startPhase('rest'); // 8s rest, then straight to exercise (no prep)
       } else {
-        // All series done
-        workoutKcal += (ex.kcal_per_set || 8) * (ex.sets - 1);
         if (currentExIndex >= currentWorkout.length - 1) {
           finishWorkout();
         } else {
-          startPhase('transition');
+          startPhase('transition'); // 10s before next exercise
         }
       }
     }
   } else if (autoPhase === 'rest') {
-    autoSide = 'left';
-    startPhase('prep');
+    // after rest go straight to exercise, no prep
+    startPhase('exercise');
   } else if (autoPhase === 'transition') {
     currentExIndex++;
-    showExercise(currentExIndex);
+    showExercise(currentExIndex); // showExercise starts with prep (10s) for new exercise
   }
 }
 
