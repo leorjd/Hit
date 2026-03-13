@@ -26,8 +26,15 @@
   --radius-xl:  24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;background:#000;}
-body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
+html{height:100%;background:#0a0a0a;}
+body{
+  height:100%;overflow:hidden;background:#000;
+  font-family:var(--font-body);color:#fff;touch-action:manipulation;
+  max-width:430px;
+  margin:0 auto;
+  position:relative;
+  box-shadow:-1px 0 0 #1a1a1a, 1px 0 0 #1a1a1a, 0 0 80px rgba(0,0,0,.9);
+}
 
 /* ── SCREENS ── */
 .screen{
