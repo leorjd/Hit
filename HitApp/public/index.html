@@ -802,7 +802,11 @@ document.addEventListener('visibilitychange', async () => {
     if (state.name && state.hasBiometric) sessionLocked = true;
   } else {
     await requestWakeLock();
-    if (sessionLocked) { sessionLocked = false; goTo('screen-login'); }
+    if (sessionLocked) {
+      sessionLocked = false;
+      document.getElementById('login-name').textContent = state.name.toUpperCase();
+      goTo('screen-login');
+    }
   }
 });
 
