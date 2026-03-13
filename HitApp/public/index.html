@@ -26,45 +26,26 @@
   --radius-xl:  24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{
-  height:100%;
-  background:#000;
-  display:flex;
+html,body{height:100%;background:#0a0a0a;overflow:hidden;}
+body{
+  font-family:var(--font-body);color:#fff;touch-action:manipulation;
+  display:flex;flex-direction:column;
   align-items:center;
   justify-content:center;
-}
-body{
-  width:100%;
-  max-width:440px;
-  height:100vh;
-  max-height:100vh;
-  overflow:hidden;
-  background:#0a0a0a;
-  font-family:var(--font-body);color:#fff;touch-action:manipulation;
-  position:relative;
-  flex-shrink:0;
-}
-@media(min-width:500px){
-  html{ background: radial-gradient(ellipse at 50% 40%, #141414 0%, #000 70%); }
-  body{
-    height:calc(100vh - 48px);
-    max-height:860px;
-    border-radius:28px;
-    box-shadow:0 0 0 1px #222, 0 32px 80px rgba(0,0,0,.9);
-  }
 }
 
 /* ── SCREENS ── */
 .screen{
-  position:absolute;inset:0;
+  position:fixed;
+  top:0;left:50%;transform:translateX(-50%) translateY(20px);
+  width:100%;max-width:480px;height:100%;
   display:flex;flex-direction:column;
   background:#0a0a0a;
   opacity:0;pointer-events:none;
   transition:opacity .3s ease, transform .3s ease;
-  transform:translateY(20px);
   overflow:hidden;
 }
-.screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.screen.active{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0);}
 
 /* ── SCROLLABLE CONTENT ── */
 .screen-body{
@@ -303,11 +284,11 @@ body{
 ══════════════════════════════════════ -->
 <div id="screen-onboard" class="screen active">
   <div class="safe-top"></div>
-  <div class="screen-body" style="display:flex;flex-direction:column;justify-content:center;padding-top:40px;">
+  <div class="screen-body" style="display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding-top:40px;">
 
     <!-- Logo -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:40px;">
-      <svg class="logo-svg" width="48" height="48" viewBox="0 0 48 48">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:40px;">
+      <svg class="logo-svg" width="56" height="56" viewBox="0 0 48 48">
         <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
         <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
         <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
@@ -315,29 +296,29 @@ body{
         <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
       </svg>
       <div>
-        <div style="font-family:var(--font-display);font-size:40px;color:var(--hit-green);letter-spacing:3px;line-height:1;">HIT</div>
-        <div class="label" style="margin-top:2px;">Entrena en casa</div>
+        <div style="font-family:var(--font-display);font-size:40px;color:var(--hit-green);letter-spacing:6px;line-height:1;">HIT</div>
+        <div class="label" style="margin-top:4px;letter-spacing:4px;">ENTRENA EN CASA</div>
       </div>
     </div>
 
     <div class="display-lg" style="margin-bottom:8px;">BIENVENIDO<span class="accent">.</span></div>
-    <div class="bar" style="margin-bottom:16px;"></div>
-    <p style="color:var(--hit-gray-light);font-size:14px;line-height:1.6;margin-bottom:36px;">
+    <div class="bar" style="margin:0 auto 16px;"></div>
+    <p style="color:var(--hit-gray-light);font-size:14px;line-height:1.6;margin-bottom:36px;max-width:280px;">
       Rutinas diarias únicas generadas por IA. Sin equipo de gimnasio, sin excusas.
     </p>
 
-    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;">
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;width:100%;max-width:320px;">
       <div class="input-wrap">
-        <label class="label">Tu nombre</label>
+        <label class="label" style="text-align:left;">Tu nombre</label>
         <input id="ob-name" class="hit-input" type="text" placeholder="¿Cómo te llamas?"/>
       </div>
       <div class="input-wrap">
-        <label class="label">Tu peso (kg)</label>
+        <label class="label" style="text-align:left;">Tu peso (kg)</label>
         <input id="ob-weight" class="hit-input" type="number" placeholder="Ej. 65" inputmode="decimal"/>
       </div>
     </div>
 
-    <button class="btn-primary" onclick="completeOnboarding()">EMPEZAR →</button>
+    <button class="btn-primary" style="max-width:320px;" onclick="completeOnboarding()">EMPEZAR →</button>
 
     <p class="caption" style="text-align:center;margin-top:16px;">
       Tu información solo se guarda en este dispositivo.
