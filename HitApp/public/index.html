@@ -977,7 +977,7 @@ RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
       "side_exercise": false,
       "kcal_per_set": 10,
       "gif_search": "palabra clave corta para buscar GIF del ejercicio en inglés",
-      "description": "Descripción clara en 2 oraciones de cómo ejecutarlo correctamente.",
+      "description": "1. Posición inicial con pies al ancho de hombros. 2. Baja controlando el movimiento. 3. Sube de forma explosiva. 4. Mantén el core activado siempre.",
       "muscles": ["músculo1", "músculo2"]
     }
   ]
@@ -1072,11 +1072,19 @@ function showExercise(index) {
   document.getElementById('ex-sets').textContent = `${ex.sets} SERIES · ${ex.reps}`;
   // Render description as numbered steps
   const descEl = document.getElementById('ex-desc');
-  const steps = ex.description.split(/(?=\d+\.)/).filter(s => s.trim());
+  const desc = ex.description || '';
+  const steps = desc.split(/(?=\d+\.\s)/).map(s => s.trim()).filter(s => s.length > 0);
   if (steps.length > 1) {
-    descEl.innerHTML = steps.map(s => `<div style="margin-bottom:6px;">${s.trim()}</div>`).join('');
+    descEl.innerHTML = steps.map(s => {
+      const num = s.match(/^(\d+\.)/);
+      const text = s.replace(/^\d+\.\s*/, '');
+      return `<div style="display:flex;gap:8px;margin-bottom:8px;text-align:left;">
+        <span style="color:var(--hit-green);font-family:var(--font-display);font-size:14px;min-width:20px;">${num ? num[1] : ''}</span>
+        <span>${text}</span>
+      </div>`;
+    }).join('');
   } else {
-    descEl.textContent = ex.description;
+    descEl.textContent = desc;
   }
 
   // Chips
