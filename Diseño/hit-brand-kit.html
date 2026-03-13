@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HIT — Brand Kit Completo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --hit-black:      #000000;
+      --hit-carbon:     #1C1C1C;
+      --hit-gray:       #3A3A3A;
+      --hit-green:      #D6FF00;
+      --hit-green-dark: #8FAA00;
+      --font-display:   'Bebas Neue', Impact, sans-serif;
+      --font-body:      'DM Sans', Arial, sans-serif;
+      --radius-sm:  8px;
+      --radius-md:  12px;
+      --radius-lg:  16px;
+      --radius-xl:  24px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: #0a0a0a; color: #fff; font-family: var(--font-body); }
+
+    /* ── Layout ── */
+    .page { max-width: 900px; margin: 0 auto; padding: 60px 32px 100px; }
+    .section { margin-bottom: 80px; }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 13px;
+      letter-spacing: 4px;
+      color: var(--hit-gray);
+      text-transform: uppercase;
+      border-bottom: 1px solid #1C1C1C;
+      padding-bottom: 12px;
+      margin-bottom: 32px;
+    }
+    .section-title span { color: var(--hit-green); margin-right: 8px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    @media(max-width:600px){ .grid-2,.grid-3,.grid-5{ grid-template-columns:1fr 1fr; } }
+
+    /* ── Cards ── */
+    .card { background: var(--hit-carbon); border: 1px solid #2a2a2a; border-radius: var(--radius-lg); padding: 24px; }
+    .card-dark { background: #111; border: 1px solid #2a2a2a; border-radius: var(--radius-lg); padding: 24px; }
+
+    /* ── Tipografía utilitaria ── */
+    .hit-display-xl  { font-family: var(--font-display); font-size: 72px; line-height:1; letter-spacing:2px; }
+    .hit-display-lg  { font-family: var(--font-display); font-size: 48px; line-height:1; letter-spacing:1px; }
+    .hit-display-md  { font-family: var(--font-display); font-size: 32px; line-height:1; }
+    .hit-display-sm  { font-family: var(--font-display); font-size: 22px; line-height:1; }
+    .hit-body-bold   { font-family: var(--font-body); font-size: 16px; font-weight:700; line-height:1.4; }
+    .hit-body        { font-family: var(--font-body); font-size: 14px; font-weight:400; line-height:1.6; }
+    .hit-caption     { font-family: var(--font-body); font-size: 12px; color: var(--hit-gray); }
+    .hit-label       { font-family: var(--font-body); font-size: 10px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color: var(--hit-gray); }
+    .accent          { color: var(--hit-green); }
+    .muted           { color: var(--hit-green-dark); }
+
+    /* ── Botones ── */
+    .btn-hit { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--hit-green); color:#000; font-family:var(--font-display); font-size:18px; letter-spacing:2px; padding:13px 28px; border:none; border-radius:var(--radius-md); cursor:pointer; transition:opacity .15s; text-decoration:none; }
+    .btn-hit:hover { opacity:.88; }
+    .btn-hit-outline { display:inline-flex; align-items:center; justify-content:center; background:transparent; color:var(--hit-green); font-family:var(--font-display); font-size:18px; letter-spacing:2px; padding:12px 28px; border:1px solid var(--hit-green); border-radius:var(--radius-md); cursor:pointer; transition:background .15s; text-decoration:none; }
+    .btn-hit-outline:hover { background:rgba(214,255,0,.07); }
+    .btn-hit-ghost { display:inline-flex; align-items:center; justify-content:center; gap:8px; background:transparent; color:var(--hit-gray); font-family:var(--font-body); font-size:13px; padding:12px 20px; border:1px solid #2a2a2a; border-radius:var(--radius-md); cursor:pointer; transition:border-color .15s; text-decoration:none; }
+    .btn-hit-ghost:hover { border-color:var(--hit-gray); color:#fff; }
+
+    /* ── Inputs ── */
+    .hit-input { background:var(--hit-carbon); border:1px solid #2a2a2a; border-radius:var(--radius-md); padding:13px 16px; font-family:var(--font-body); font-size:14px; color:#fff; outline:none; width:100%; transition:border-color .15s; }
+    .hit-input::placeholder { color:var(--hit-gray); }
+    .hit-input:focus { border-color:var(--hit-green); }
+    .hit-input-wrap { display:flex; flex-direction:column; gap:6px; }
+
+    /* ── Badge ── */
+    .hit-badge { display:inline-flex; align-items:center; background:rgba(214,255,0,.1); color:var(--hit-green); font-family:var(--font-body); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:4px 10px; border-radius:100px; }
+    .hit-badge-gray { display:inline-flex; align-items:center; background:#1C1C1C; color:var(--hit-gray); font-family:var(--font-body); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:4px 10px; border-radius:100px; }
+
+    /* ── Divider ── */
+    .hit-divider { height:1px; background:#2a2a2a; width:100%; }
+    .hit-divider-row { display:flex; align-items:center; gap:12px; }
+    .hit-divider-row::before,.hit-divider-row::after { content:''; flex:1; height:1px; background:#2a2a2a; }
+    .hit-divider-row span { font-family:var(--font-body); font-size:11px; color:var(--hit-gray); white-space:nowrap; }
+
+    /* ── Accent bar ── */
+    .hit-bar { width:40px; height:3px; background:var(--hit-green); border-radius:2px; }
+
+    /* ── Progress bar ── */
+    .hit-progress-track { background:#1C1C1C; border-radius:100px; height:6px; width:100%; overflow:hidden; }
+    .hit-progress-fill  { background:var(--hit-green); height:100%; border-radius:100px; }
+
+    /* ── Exercise card ── */
+    .ex-card { background:var(--hit-carbon); border:1px solid #2a2a2a; border-radius:var(--radius-lg); padding:16px 18px; display:flex; flex-direction:column; gap:6px; }
+    .ex-number { font-family:var(--font-body); font-size:10px; font-weight:700; letter-spacing:2px; color:var(--hit-gray); text-transform:uppercase; }
+    .ex-name { font-family:var(--font-display); font-size:22px; color:var(--hit-green); }
+    .ex-meta { font-family:var(--font-body); font-size:12px; color:var(--hit-green-dark); }
+
+    /* ── Stat card ── */
+    .stat-card { background:var(--hit-carbon); border:1px solid #2a2a2a; border-radius:var(--radius-lg); padding:18px; display:flex; flex-direction:column; gap:4px; }
+    .stat-value { font-family:var(--font-display); font-size:36px; color:var(--hit-green); line-height:1; }
+    .stat-label { font-family:var(--font-body); font-size:11px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:var(--hit-gray); }
+
+    /* ── Tag / chip ── */
+    .hit-chip { display:inline-flex; align-items:center; background:#1C1C1C; border:1px solid #2a2a2a; color:#aaa; font-family:var(--font-body); font-size:11px; padding:5px 12px; border-radius:100px; }
+    .hit-chip.active { border-color:var(--hit-green); color:var(--hit-green); background:rgba(214,255,0,.06); }
+
+    /* ── Nav bottom ── */
+    .hit-nav { background:#111; border-top:1px solid #1C1C1C; display:flex; justify-content:space-around; padding:12px 0 8px; border-radius:0 0 var(--radius-xl) var(--radius-xl); }
+    .nav-item { display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer; }
+    .nav-icon { width:22px; height:22px; }
+    .nav-label { font-family:var(--font-body); font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--hit-gray); }
+    .nav-item.active .nav-label { color:var(--hit-green); }
+
+    /* ── Notification ── */
+    .hit-toast { background:var(--hit-carbon); border-left:3px solid var(--hit-green); border-radius:var(--radius-md); padding:14px 18px; display:flex; flex-direction:column; gap:4px; }
+
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ═══════════════════════════════════════
+       HEADER
+  ════════════════════════════════════════ -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:64px;">
+    <svg width="48" height="48" viewBox="0 0 48 48">
+      <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+      <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
+      <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
+      <rect x="32" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
+      <rect x="32" y="7" width="7" height="34" rx="3" fill="#D6FF00"/>
+      <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
+    </svg>
+    <div>
+      <div style="font-family:var(--font-display); font-size:36px; color:var(--hit-green); letter-spacing:3px; line-height:1;">HIT</div>
+      <div style="font-family:var(--font-body); font-size:10px; letter-spacing:3px; color:var(--hit-gray); text-transform:uppercase;">Brand Kit Completo</div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       1. LOGO
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>01</span>Logo</div>
+    <div class="grid-2">
+
+      <!-- Versión principal oscura -->
+      <div class="card" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; gap:16px; min-height:200px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <rect width="44" height="44" rx="10" fill="#111" stroke="#2a2a2a" stroke-width="1"/>
+            <rect x="8" y="6" width="6" height="32" rx="2" fill="#1C1C1C"/>
+            <rect x="8" y="6" width="6" height="21" rx="2" fill="#D6FF00"/>
+            <rect x="30" y="6" width="6" height="32" rx="2" fill="#D6FF00"/>
+            <rect x="14" y="17" width="16" height="6" rx="2" fill="#D6FF00"/>
+          </svg>
+          <span style="font-family:var(--font-display); font-size:42px; color:#D6FF00; letter-spacing:3px; line-height:1;">HIT</span>
+        </div>
+        <div style="font-family:var(--font-body); font-size:9px; letter-spacing:3px; color:#3A3A3A; text-transform:uppercase;">Versión principal</div>
+      </div>
+
+      <!-- Versión invertida clara -->
+      <div class="card" style="background:#D6FF00; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px; gap:16px; min-height:200px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <rect width="44" height="44" rx="10" fill="#000"/>
+            <rect x="8" y="6" width="6" height="32" rx="2" fill="#1C1C1C"/>
+            <rect x="8" y="6" width="6" height="21" rx="2" fill="#D6FF00"/>
+            <rect x="30" y="6" width="6" height="32" rx="2" fill="#D6FF00"/>
+            <rect x="14" y="17" width="16" height="6" rx="2" fill="#D6FF00"/>
+          </svg>
+          <span style="font-family:var(--font-display); font-size:42px; color:#000; letter-spacing:3px; line-height:1;">HIT</span>
+        </div>
+        <div style="font-family:var(--font-body); font-size:9px; letter-spacing:3px; color:#8FAA00; text-transform:uppercase;">Versión invertida</div>
+      </div>
+
+      <!-- Solo texto -->
+      <div class="card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; gap:12px;">
+        <span style="font-family:var(--font-display); font-size:64px; color:#D6FF00; letter-spacing:4px; line-height:1;">HIT</span>
+        <div class="hit-bar"></div>
+        <div style="font-family:var(--font-body); font-size:9px; letter-spacing:3px; color:#3A3A3A; text-transform:uppercase;">Solo wordmark</div>
+      </div>
+
+      <!-- Solo ícono — tamaños -->
+      <div class="card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px; gap:20px;">
+        <div style="display:flex; align-items:flex-end; gap:20px;">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <rect width="64" height="64" rx="16" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+            <rect x="12" y="9" width="10" height="46" rx="3" fill="#1C1C1C"/>
+            <rect x="12" y="9" width="10" height="30" rx="3" fill="#D6FF00"/>
+            <rect x="42" y="9" width="10" height="46" rx="3" fill="#D6FF00"/>
+            <rect x="22" y="27" width="20" height="9" rx="3" fill="#D6FF00"/>
+          </svg>
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <rect width="40" height="40" rx="10" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+            <rect x="7" y="6" width="7" height="28" rx="2" fill="#1C1C1C"/>
+            <rect x="7" y="6" width="7" height="18" rx="2" fill="#D6FF00"/>
+            <rect x="26" y="6" width="7" height="28" rx="2" fill="#D6FF00"/>
+            <rect x="14" y="16" width="12" height="6" rx="2" fill="#D6FF00"/>
+          </svg>
+          <svg width="24" height="24" viewBox="0 0 24 24">
+            <rect width="24" height="24" rx="6" fill="#D6FF00"/>
+            <rect x="4" y="3" width="4" height="18" rx="1.5" fill="#1C1C1C"/>
+            <rect x="4" y="3" width="4" height="11" rx="1.5" fill="#000"/>
+            <rect x="16" y="3" width="4" height="18" rx="1.5" fill="#000"/>
+            <rect x="8" y="9" width="8" height="4" rx="1.5" fill="#000"/>
+          </svg>
+        </div>
+        <div style="font-family:var(--font-body); font-size:9px; letter-spacing:3px; color:#3A3A3A; text-transform:uppercase;">Ícono en tamaños</div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       2. PALETA DE COLORES
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>02</span>Paleta de colores</div>
+    <div class="grid-5">
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:100px; background:#000000; border-radius:var(--radius-md); border:1px solid #2a2a2a;"></div>
+        <div style="font-family:var(--font-body); font-size:11px; font-weight:700; color:#fff;">Negro</div>
+        <div style="font-family:var(--font-body); font-size:11px; color:var(--hit-gray);">#000000</div>
+        <div style="font-family:var(--font-body); font-size:10px; color:var(--hit-gray);">Fondo principal</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:100px; background:#1C1C1C; border-radius:var(--radius-md); border:1px solid #2a2a2a;"></div>
+        <div style="font-family:var(--font-body); font-size:11px; font-weight:700; color:#fff;">Carbón</div>
+        <div style="font-family:var(--font-body); font-size:11px; color:var(--hit-gray);">#1C1C1C</div>
+        <div style="font-family:var(--font-body); font-size:10px; color:var(--hit-gray);">Cards / capas</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:100px; background:#3A3A3A; border-radius:var(--radius-md);"></div>
+        <div style="font-family:var(--font-body); font-size:11px; font-weight:700; color:#fff;">Gris oscuro</div>
+        <div style="font-family:var(--font-body); font-size:11px; color:var(--hit-gray);">#3A3A3A</div>
+        <div style="font-family:var(--font-body); font-size:10px; color:var(--hit-gray);">Texto muted</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:100px; background:#D6FF00; border-radius:var(--radius-md);"></div>
+        <div style="font-family:var(--font-body); font-size:11px; font-weight:700; color:#fff;">Verde HIT</div>
+        <div style="font-family:var(--font-body); font-size:11px; color:var(--hit-gray);">#D6FF00</div>
+        <div style="font-family:var(--font-body); font-size:10px; color:var(--hit-gray);">Color primario</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="height:100px; background:#8FAA00; border-radius:var(--radius-md);"></div>
+        <div style="font-family:var(--font-body); font-size:11px; font-weight:700; color:#fff;">Verde sombra</div>
+        <div style="font-family:var(--font-body); font-size:11px; color:var(--hit-gray);">#8FAA00</div>
+        <div style="font-family:var(--font-body); font-size:10px; color:var(--hit-gray);">Hover / secundario</div>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       3. TIPOGRAFÍA
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>03</span>Tipografía</div>
+
+    <div class="card-dark" style="margin-bottom:16px; display:flex; flex-direction:column; gap:24px;">
+      <div>
+        <div class="hit-label" style="margin-bottom:8px;">Bebas Neue — Display</div>
+        <div class="hit-display-xl accent">ENTRENA SIN LÍMITES</div>
+        <div class="hit-display-lg" style="color:#fff;">RUTINA DEL DÍA</div>
+        <div class="hit-display-md" style="color:#fff;">Semana 3 — Fuerza</div>
+        <div class="hit-display-sm" style="color:#fff;">Ejercicio 01</div>
+      </div>
+      <div class="hit-divider"></div>
+      <div>
+        <div class="hit-label" style="margin-bottom:8px;">DM Sans — Cuerpo</div>
+        <div class="hit-body-bold">Semana 3 · Día 5 · Fuerza explosiva</div>
+        <div class="hit-body muted">Completa los 4 bloques. Descansa 60 seg entre series.</div>
+        <div class="hit-caption">Press banca · Sentadilla · Peso muerto · Remo con barra</div>
+      </div>
+    </div>
+
+    <!-- Escala tipográfica -->
+    <div class="card" style="display:flex; flex-direction:column; gap:12px;">
+      <div class="hit-label">Escala completa</div>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Display XL / 72px</span>
+          <span style="font-family:var(--font-display);font-size:40px;color:#D6FF00;line-height:1;">HIT</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Display LG / 48px</span>
+          <span style="font-family:var(--font-display);font-size:32px;color:#fff;line-height:1;">SENTADILLA</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Body Bold / 16px</span>
+          <span style="font-family:var(--font-body);font-size:16px;font-weight:700;color:#fff;">4 series · 12 repeticiones</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Body / 14px</span>
+          <span style="font-family:var(--font-body);font-size:14px;color:var(--hit-green-dark);">Descansa 60 segundos antes de continuar</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Caption / 12px</span>
+          <span style="font-family:var(--font-body);font-size:12px;color:var(--hit-gray);">Última actualización hace 2 días</span>
+        </div>
+        <div style="display:flex; align-items:baseline; gap:16px;">
+          <span style="font-family:var(--font-body);font-size:10px;color:var(--hit-gray);min-width:90px;">Label / 10px</span>
+          <span style="font-family:var(--font-body);font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--hit-gray);">Ejercicio 01</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       4. ICONOGRAFÍA
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>04</span>Iconografía</div>
+    <div class="card-dark" style="display:flex; flex-wrap:wrap; gap:24px; align-items:center;">
+
+      <!-- Home -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+          <path d="M9 21V12h6v9"/>
+        </svg>
+        <span class="hit-label">Home</span>
+      </div>
+
+      <!-- Rutina -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2"/>
+          <path d="M16 2v4M8 2v4M3 10h18"/>
+          <path d="M8 14h2M8 18h2M12 14h4M12 18h4"/>
+        </svg>
+        <span class="hit-label">Rutina</span>
+      </div>
+
+      <!-- Cronómetro -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/>
+          <path d="M12 9v4l3 2"/>
+          <path d="M9 3h6M12 3v2"/>
+        </svg>
+        <span class="hit-label">Timer</span>
+      </div>
+
+      <!-- Fuego / racha -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22c4 0 7-3 7-7 0-3-2-5-2-5s-1 2-3 2c0-3-2-6-4-8 0 4-4 6-4 9a7 7 0 006 9z"/>
+        </svg>
+        <span class="hit-label">Racha</span>
+      </div>
+
+      <!-- Corazón / pulso -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2,12 6,12 8,6 10,18 13,10 15,14 17,12 22,12"/>
+        </svg>
+        <span class="hit-label">Pulso</span>
+      </div>
+
+      <!-- Pesas -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 4v16M18 4v16M2 8v8M22 8v8M6 12h12"/>
+        </svg>
+        <span class="hit-label">Pesas</span>
+      </div>
+
+      <!-- Perfil -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        <span class="hit-label">Perfil</span>
+      </div>
+
+      <!-- Progreso -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4,17 9,12 13,14 20,7"/>
+          <polyline points="15,7 20,7 20,12"/>
+        </svg>
+        <span class="hit-label">Progreso</span>
+      </div>
+
+      <!-- Config -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+        <span class="hit-label">Config</span>
+      </div>
+
+      <!-- Play -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <polygon points="10,8 16,12 10,16" fill="#D6FF00" stroke="none"/>
+        </svg>
+        <span class="hit-label">Play</span>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       5. COMPONENTES
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>05</span>Componentes</div>
+
+    <div class="grid-2" style="margin-bottom:16px;">
+
+      <!-- Botones -->
+      <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="hit-label" style="margin-bottom:4px;">Botones</div>
+        <button class="btn-hit" style="width:100%;">COMENZAR</button>
+        <button class="btn-hit-outline" style="width:100%;">VER RUTINA</button>
+        <button class="btn-hit-ghost" style="width:100%;">Cancelar</button>
+      </div>
+
+      <!-- Inputs -->
+      <div class="card" style="display:flex;flex-direction:column;gap:10px;">
+        <div class="hit-label" style="margin-bottom:4px;">Inputs</div>
+        <div class="hit-input-wrap">
+          <label class="hit-label">Correo</label>
+          <input class="hit-input" type="text" placeholder="tu@correo.com"/>
+        </div>
+        <div class="hit-input-wrap">
+          <label class="hit-label">Contraseña</label>
+          <input class="hit-input" type="password" placeholder="••••••••"/>
+        </div>
+      </div>
+
+      <!-- Badges y chips -->
+      <div class="card" style="display:flex;flex-direction:column;gap:12px;">
+        <div class="hit-label" style="margin-bottom:4px;">Badges y chips</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="hit-badge">Activo</span>
+          <span class="hit-badge">Nuevo</span>
+          <span class="hit-badge-gray">Completado</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <span class="hit-chip active">Fuerza</span>
+          <span class="hit-chip">Cardio</span>
+          <span class="hit-chip">Movilidad</span>
+          <span class="hit-chip">HIIT</span>
+        </div>
+      </div>
+
+      <!-- Progress bars -->
+      <div class="card" style="display:flex;flex-direction:column;gap:14px;">
+        <div class="hit-label" style="margin-bottom:4px;">Progreso</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="hit-caption">Semana completada</span>
+            <span style="font-family:var(--font-display);font-size:14px;color:var(--hit-green);">75%</span>
+          </div>
+          <div class="hit-progress-track"><div class="hit-progress-fill" style="width:75%;"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="hit-caption">Ejercicios hoy</span>
+            <span style="font-family:var(--font-display);font-size:14px;color:var(--hit-green);">3/5</span>
+          </div>
+          <div class="hit-progress-track"><div class="hit-progress-fill" style="width:60%;"></div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span class="hit-caption">Calorías quemadas</span>
+            <span style="font-family:var(--font-display);font-size:14px;color:var(--hit-green);">40%</span>
+          </div>
+          <div class="hit-progress-track"><div class="hit-progress-fill" style="width:40%;"></div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stats -->
+    <div class="grid-3" style="margin-bottom:16px;">
+      <div class="stat-card">
+        <div class="stat-value">847</div>
+        <div class="stat-label">Kcal hoy</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">12</div>
+        <div class="stat-label">Racha días</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">5/7</div>
+        <div class="stat-label">Semana</div>
+      </div>
+    </div>
+
+    <!-- Exercise cards -->
+    <div class="grid-2" style="margin-bottom:16px;">
+      <div class="ex-card">
+        <div class="ex-number">Ejercicio 01</div>
+        <div class="ex-name">SENTADILLA BÚLGARA</div>
+        <div class="ex-meta">4 series · 12 reps · 70% 1RM</div>
+        <div style="margin-top:8px; display:flex; gap:8px;">
+          <span class="hit-chip active">Piernas</span>
+          <span class="hit-chip">Glúteos</span>
+        </div>
+      </div>
+      <div class="ex-card" style="border-color:var(--hit-green);">
+        <div class="ex-number">En curso</div>
+        <div class="ex-name">PRESS BANCA</div>
+        <div class="ex-meta">3/4 series · 10 reps · 80kg</div>
+        <div style="margin-top:8px;">
+          <div class="hit-progress-track"><div class="hit-progress-fill" style="width:75%;"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast / notificación -->
+    <div class="hit-toast">
+      <div style="font-family:var(--font-display);font-size:16px;color:var(--hit-green);">¡RUTINA COMPLETADA!</div>
+      <div class="hit-caption">Quemaste 620 kcal · Duración 48 min</div>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════
+       6. PANTALLA LOGIN
+  ════════════════════════════════════════ -->
+  <div class="section">
+    <div class="section-title"><span>06</span>Pantalla — Login</div>
+    <div style="display:flex; justify-content:center;">
+      <div style="background:#0a0a0a; width:340px; border-radius:36px; border:6px solid #1C1C1C; padding:52px 28px 36px; position:relative; display:flex; flex-direction:column; align-items:center;">
+
+        <!-- Notch -->
+        <div style="width:80px;height:20px;background:#000;border-radius:0 0 12px 12px;position:absolute;top:0;left:50%;transform:translateX(-50%);"></div>
+
+        <!-- Logo -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:36px;">
+          <svg width="36" height="36" viewBox="0 0 36 36">
+            <rect width="36" height="36" rx="8" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+            <rect x="7" y="5" width="5" height="26" rx="2" fill="#1C1C1C"/>
+            <rect x="7" y="5" width="5" height="17" rx="2" fill="#D6FF00"/>
+            <rect x="24" y="5" width="5" height="26" rx="2" fill="#D6FF00"/>
+            <rect x="12" y="15" width="12" height="4" rx="2" fill="#D6FF00"/>
+          </svg>
+          <span style="font-family:var(--font-display);font-size:30px;color:#D6FF00;letter-spacing:2px;line-height:1;">HIT</span>
+        </div>
+
+        <div style="font-family:var(--font-display);font-size:40px;color:#fff;text-align:center;line-height:1;margin-bottom:10px;">BIENVENIDO</div>
+        <div class="hit-bar" style="margin-bottom:10px;"></div>
+        <p class="hit-caption" style="text-align:center;margin-bottom:32px;">Inicia sesión para continuar</p>
+
+        <form style="width:100%;display:flex;flex-direction:column;gap:14px;" onsubmit="return false;">
+          <div class="hit-input-wrap">
+            <label class="hit-label">Correo</label>
+            <input class="hit-input" type="email" placeholder="tu@correo.com"/>
+          </div>
+          <div class="hit-input-wrap">
+            <label class="hit-label">Contraseña</label>
+            <input class="hit-input" type="password" placeholder="••••••••"/>
+          </div>
+          <div style="text-align:right;">
+            <a href="#" style="font-family:var(--font-body);font-size:11px;color:var(--hit-green-dark);text-decoration:none;">¿Olvidaste tu contraseña?</a>
+          </div>
+          <button class="btn-hit" style="width:100%;margin-top:4px;">ENTRAR</button>
+          <div class="hit-divider-row"><span>o continúa con</span></div>
+          <button type="button" class="btn-hit-ghost" style="width:100%;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+        </form>
+
+        <p class="hit-caption" style="margin-top:24px;text-align:center;">
+          ¿No tienes cuenta? <a href="#" style="color:var(--hit-green);text-decoration:none;">Regístrate</a>
+        </p>
+
+        <!-- Nav -->
+        <div style="width:100%;margin-top:28px;" class="hit-nav">
+          <div class="nav-item active">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+            <span class="nav-label" style="color:#D6FF00;">Home</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span class="nav-label">Rutinas</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,17 9,12 13,14 20,7"/><polyline points="15,7 20,7 20,12"/></svg>
+            <span class="nav-label">Progreso</span>
+          </div>
+          <div class="nav-item">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            <span class="nav-label">Perfil</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

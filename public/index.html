@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>HIT — Entrena en Casa</title>
+<link rel="manifest" href="/manifest.json"/>
+<meta name="theme-color" content="#000000"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="HIT"/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --hit-black:      #000000;
+  --hit-carbon:     #1C1C1C;
+  --hit-gray:       #3A3A3A;
+  --hit-gray-light: #888;
+  --hit-green:      #D6FF00;
+  --hit-green-dark: #8FAA00;
+  --font-display:   'Bebas Neue', Impact, sans-serif;
+  --font-body:      'DM Sans', Arial, sans-serif;
+  --radius-sm:  8px;
+  --radius-md:  12px;
+  --radius-lg:  16px;
+  --radius-xl:  24px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;background:#000;}
+body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
+
+/* ── SCREENS ── */
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  background:#0a0a0a;
+  opacity:0;pointer-events:none;
+  transition:opacity .3s ease, transform .3s ease;
+  transform:translateY(20px);
+  overflow:hidden;
+}
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0);}
+
+/* ── SCROLLABLE CONTENT ── */
+.screen-body{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  padding:0 20px 100px;
+}
+.screen-body::-webkit-scrollbar{display:none;}
+
+/* ── SAFE AREA TOP ── */
+.safe-top{height:env(safe-area-inset-top, 20px);min-height:20px;}
+
+/* ── NAV BOTTOM ── */
+.hit-nav{
+  background:#111;
+  border-top:1px solid #1C1C1C;
+  display:flex;justify-content:space-around;
+  padding:10px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+  flex-shrink:0;
+}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px 12px;border-radius:8px;transition:background .15s;}
+.nav-item:active{background:#1C1C1C;}
+.nav-icon{width:22px;height:22px;}
+.nav-label{font-family:var(--font-body);font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--hit-gray);}
+.nav-item.active .nav-label{color:var(--hit-green);}
+
+/* ── TYPOGRAPHY ── */
+.display-xl{font-family:var(--font-display);font-size:72px;line-height:1;letter-spacing:2px;}
+.display-lg{font-family:var(--font-display);font-size:48px;line-height:1;letter-spacing:1px;}
+.display-md{font-family:var(--font-display);font-size:32px;line-height:1;}
+.display-sm{font-family:var(--font-display);font-size:22px;line-height:1;}
+.label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--hit-gray);}
+.caption{font-size:12px;color:var(--hit-gray-light);}
+.accent{color:var(--hit-green);}
+
+/* ── BUTTONS ── */
+.btn-primary{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--hit-green);color:#000;
+  font-family:var(--font-display);font-size:20px;letter-spacing:2px;
+  padding:16px 28px;border:none;border-radius:var(--radius-md);
+  cursor:pointer;transition:opacity .15s, transform .1s;width:100%;
+}
+.btn-primary:active{opacity:.85;transform:scale(.98);}
+.btn-outline{
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;color:var(--hit-green);
+  font-family:var(--font-display);font-size:18px;letter-spacing:2px;
+  padding:14px 28px;border:1px solid var(--hit-green);border-radius:var(--radius-md);
+  cursor:pointer;transition:background .15s;width:100%;
+}
+.btn-outline:active{background:rgba(214,255,0,.08);}
+.btn-ghost{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:transparent;color:var(--hit-gray-light);
+  font-family:var(--font-body);font-size:13px;
+  padding:12px 20px;border:1px solid #2a2a2a;border-radius:var(--radius-md);
+  cursor:pointer;transition:border-color .15s;width:100%;
+}
+
+/* ── INPUTS ── */
+.hit-input{
+  background:var(--hit-carbon);border:1px solid #2a2a2a;
+  border-radius:var(--radius-md);padding:14px 16px;
+  font-family:var(--font-body);font-size:15px;color:#fff;
+  outline:none;width:100%;transition:border-color .15s;
+}
+.hit-input::placeholder{color:var(--hit-gray);}
+.hit-input:focus{border-color:var(--hit-green);}
+.input-wrap{display:flex;flex-direction:column;gap:6px;}
+
+/* ── CARDS ── */
+.card{background:var(--hit-carbon);border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:20px;}
+.card-dark{background:#111;border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:20px;}
+
+/* ── STAT CARD ── */
+.stat-card{background:var(--hit-carbon);border:1px solid #2a2a2a;border-radius:var(--radius-lg);padding:16px;display:flex;flex-direction:column;gap:4px;}
+.stat-value{font-family:var(--font-display);font-size:36px;color:var(--hit-green);line-height:1;}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--hit-gray);}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;background:rgba(214,255,0,.1);color:var(--hit-green);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:100px;}
+.badge-gray{display:inline-flex;align-items:center;background:#1C1C1C;color:var(--hit-gray-light);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 10px;border-radius:100px;}
+
+/* ── CHIP ── */
+.chip{display:inline-flex;align-items:center;background:#1C1C1C;border:1px solid #2a2a2a;color:#aaa;font-size:11px;padding:5px 12px;border-radius:100px;}
+.chip.active{border-color:var(--hit-green);color:var(--hit-green);background:rgba(214,255,0,.06);}
+
+/* ── PROGRESS ── */
+.progress-track{background:#1C1C1C;border-radius:100px;height:5px;width:100%;overflow:hidden;}
+.progress-fill{background:var(--hit-green);height:100%;border-radius:100px;transition:width .4s ease;}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:#2a2a2a;width:100%;margin:20px 0;}
+
+/* ── ACCENT BAR ── */
+.bar{width:40px;height:3px;background:var(--hit-green);border-radius:2px;}
+
+/* ── LOGO ── */
+.logo-svg{flex-shrink:0;}
+
+/* ── LOADING DOTS ── */
+.loading-dots{display:flex;gap:6px;align-items:center;justify-content:center;padding:20px;}
+.dot{width:8px;height:8px;background:var(--hit-green);border-radius:50%;animation:dotBounce 1.2s infinite;}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+@keyframes dotBounce{0%,80%,100%{transform:scale(0.6);opacity:.4;}40%{transform:scale(1);opacity:1;}}
+
+/* ── TIMER RING ── */
+.timer-ring{position:relative;display:flex;align-items:center;justify-content:center;}
+.timer-ring svg{transform:rotate(-90deg);}
+.timer-circle-bg{fill:none;stroke:#1C1C1C;stroke-width:6;}
+.timer-circle-fill{fill:none;stroke:var(--hit-green);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .5s linear;}
+.timer-text{position:absolute;text-align:center;}
+
+/* ── SVG ANIMATIONS ── */
+.exercise-svg{width:100%;max-width:280px;margin:0 auto;display:block;}
+
+@keyframes squat{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(18px);}
+}
+@keyframes pushup{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(12px);}
+}
+@keyframes curl{
+  0%,100%{transform:rotate(0deg);}
+  50%{transform:rotate(-35deg);}
+}
+@keyframes lunge{
+  0%,100%{transform:translateY(0) scaleY(1);}
+  50%{transform:translateY(10px) scaleY(.92);}
+}
+@keyframes plank{
+  0%,100%{transform:scaleX(1);}
+  50%{transform:scaleX(.97);}
+}
+@keyframes jump{
+  0%,100%{transform:translateY(0);}
+  40%{transform:translateY(-22px);}
+  60%{transform:translateY(-22px);}
+}
+@keyframes walk{
+  0%{transform:translateX(0);}
+  50%{transform:translateX(8px);}
+  100%{transform:translateX(0);}
+}
+@keyframes shoulder{
+  0%,100%{transform:rotate(0deg);}
+  50%{transform:rotate(30deg);}
+}
+@keyframes situp{
+  0%,100%{transform:rotate(0deg);}
+  50%{transform:rotate(-40deg);}
+}
+
+/* ── MODALS / OVERLAYS ── */
+.overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:100;opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.overlay.open{opacity:1;pointer-events:all;}
+.modal{
+  background:#111;border:1px solid #2a2a2a;
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;
+  padding:28px 24px calc(28px + env(safe-area-inset-bottom,0px));
+  width:100%;max-width:500px;
+  transform:translateY(100%);transition:transform .3s ease;
+}
+.overlay.open .modal{transform:translateY(0);}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;top:20px;left:50%;transform:translateX(-50%) translateY(-80px);
+  background:var(--hit-carbon);border-left:3px solid var(--hit-green);
+  border-radius:var(--radius-md);padding:12px 18px;
+  min-width:260px;z-index:200;transition:transform .4s ease;
+  display:flex;flex-direction:column;gap:2px;
+}
+.toast.show{transform:translateX(-50%) translateY(0);}
+
+/* ── MODE CARDS ── */
+.mode-card{
+  background:var(--hit-carbon);border:2px solid #2a2a2a;
+  border-radius:var(--radius-lg);padding:22px;cursor:pointer;
+  transition:border-color .2s, background .2s;
+  display:flex;flex-direction:column;gap:8px;
+}
+.mode-card:active,.mode-card.selected{border-color:var(--hit-green);background:rgba(214,255,0,.04);}
+
+/* ── REST SCREEN ── */
+.rest-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse at center, rgba(214,255,0,.06) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+/* ── CELEBRATION ── */
+@keyframes confettiFall{
+  0%{transform:translateY(-10px) rotate(0deg);opacity:1;}
+  100%{transform:translateY(120vh) rotate(720deg);opacity:0;}
+}
+.confetti-piece{
+  position:fixed;width:8px;height:8px;border-radius:2px;
+  animation:confettiFall linear forwards;
+  pointer-events:none;z-index:300;
+}
+
+/* ── FINGERPRINT ANIMATION ── */
+@keyframes fpPulse{
+  0%,100%{opacity:.3;transform:scale(1);}
+  50%{opacity:1;transform:scale(1.05);}
+}
+.fp-icon{animation:fpPulse 2s ease-in-out infinite;}
+
+/* ── STREAK FIRE ── */
+@keyframes fireFlicker{
+  0%,100%{transform:scaleY(1) rotate(-2deg);}
+  50%{transform:scaleY(1.08) rotate(2deg);}
+}
+.fire{animation:fireFlicker 1.2s ease-in-out infinite;transform-origin:bottom center;}
+
+/* ── HEADER ── */
+.app-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 20px 8px;flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     SCREEN 1: ONBOARDING
+══════════════════════════════════════ -->
+<div id="screen-onboard" class="screen active">
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;justify-content:center;padding-top:40px;">
+
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:40px;">
+      <svg class="logo-svg" width="48" height="48" viewBox="0 0 48 48">
+        <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+        <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
+        <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
+        <rect x="32" y="7" width="7" height="34" rx="3" fill="#D6FF00"/>
+        <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
+      </svg>
+      <div>
+        <div style="font-family:var(--font-display);font-size:40px;color:var(--hit-green);letter-spacing:3px;line-height:1;">HIT</div>
+        <div class="label" style="margin-top:2px;">Entrena en casa</div>
+      </div>
+    </div>
+
+    <div class="display-lg" style="margin-bottom:8px;">BIENVENIDO<span class="accent">.</span></div>
+    <div class="bar" style="margin-bottom:16px;"></div>
+    <p style="color:var(--hit-gray-light);font-size:14px;line-height:1.6;margin-bottom:36px;">
+      Rutinas diarias únicas generadas por IA. Sin equipo de gimnasio, sin excusas.
+    </p>
+
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:32px;">
+      <div class="input-wrap">
+        <label class="label">Tu nombre</label>
+        <input id="ob-name" class="hit-input" type="text" placeholder="¿Cómo te llamas?"/>
+      </div>
+      <div class="input-wrap">
+        <label class="label">Tu peso (kg)</label>
+        <input id="ob-weight" class="hit-input" type="number" placeholder="Ej. 65" inputmode="decimal"/>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="completeOnboarding()">EMPEZAR →</button>
+
+    <p class="caption" style="text-align:center;margin-top:16px;">
+      Tu información solo se guarda en este dispositivo.
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 2: BIOMETRIC SETUP
+══════════════════════════════════════ -->
+<div id="screen-biometric" class="screen">
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:60px;">
+
+    <div class="display-md" style="margin-bottom:8px;">ACCESO <span class="accent">SEGURO</span></div>
+    <div class="bar" style="margin:0 auto 20px;"></div>
+    <p class="caption" style="margin-bottom:48px;max-width:280px;line-height:1.7;">
+      Registra tu huella para proteger tu progreso y acceder rápido cada día.
+    </p>
+
+    <!-- Fingerprint icon -->
+    <div class="fp-icon" style="margin-bottom:40px;">
+      <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" stroke="#2a2a2a" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="38" stroke="#D6FF00" stroke-width="1" opacity=".3"/>
+        <path d="M50 25c-13.8 0-25 11.2-25 25" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 32c-9.9 0-18 8.1-18 18" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 39c-6.1 0-11 4.9-11 11v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 46c-2.2 0-4 1.8-4 4v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 25c13.8 0 25 11.2 25 25v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 32c9.9 0 18 8.1 18 18v8" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
+        <path d="M50 39c6.1 0 11 4.9 11 11v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
+        <circle cx="50" cy="50" r="4" fill="#D6FF00"/>
+      </svg>
+    </div>
+
+    <button class="btn-primary" style="max-width:280px;" onclick="registerBiometric()">REGISTRAR HUELLA</button>
+    <button class="btn-ghost" style="max-width:280px;margin-top:12px;" onclick="skipBiometric()">Ahora no, entrar sin huella</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 3: LOGIN (huella)
+══════════════════════════════════════ -->
+<div id="screen-login" class="screen">
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:80px;">
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:48px;">
+      <svg width="40" height="40" viewBox="0 0 48 48">
+        <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+        <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
+        <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
+        <rect x="32" y="7" width="7" height="34" rx="3" fill="#D6FF00"/>
+        <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
+      </svg>
+      <span style="font-family:var(--font-display);font-size:36px;color:var(--hit-green);letter-spacing:3px;">HIT</span>
+    </div>
+
+    <div class="display-md" style="margin-bottom:6px;">HOLA, <span class="accent" id="login-name">CAMPEONA</span></div>
+    <div class="bar" style="margin:0 auto 12px;"></div>
+    <p class="caption" style="margin-bottom:48px;">Usa tu huella para entrar</p>
+
+    <div class="fp-icon" onclick="authenticateBiometric()" style="cursor:pointer;margin-bottom:32px;">
+      <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="48" stroke="#2a2a2a" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="38" stroke="#D6FF00" stroke-width="1" opacity=".3"/>
+        <path d="M50 25c-13.8 0-25 11.2-25 25" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 32c-9.9 0-18 8.1-18 18" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 39c-6.1 0-11 4.9-11 11v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 46c-2.2 0-4 1.8-4 4v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 25c13.8 0 25 11.2 25 25v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M50 32c9.9 0 18 8.1 18 18v8" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
+        <path d="M50 39c6.1 0 11 4.9 11 11v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
+        <circle cx="50" cy="50" r="4" fill="#D6FF00"/>
+      </svg>
+    </div>
+
+    <p class="caption">Toca la huella para autenticar</p>
+    <button class="btn-ghost" style="max-width:260px;margin-top:20px;" onclick="skipBiometric()">Entrar sin huella</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 4: HOME
+══════════════════════════════════════ -->
+<div id="screen-home" class="screen">
+  <div class="safe-top"></div>
+  <div class="app-header">
+    <div>
+      <div style="font-family:var(--font-display);font-size:28px;color:var(--hit-green);letter-spacing:2px;line-height:1;">HIT</div>
+      <div class="label" id="home-date"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="fire" style="font-size:20px;">🔥</span>
+      <div>
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--hit-green);line-height:1;" id="home-streak">0</div>
+        <div class="label">Racha</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="screen-body" style="padding-top:8px;">
+
+    <!-- Greeting -->
+    <div style="margin-bottom:24px;">
+      <div class="display-md" style="margin-bottom:4px;">¡BUENAS, <span class="accent" id="home-name">VIRI</span>!</div>
+      <div class="bar"></div>
+    </div>
+
+    <!-- Stats row -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;">
+      <div class="stat-card">
+        <div class="stat-value" id="home-total-workouts">0</div>
+        <div class="stat-label">Sesiones</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="home-streak-2">0</div>
+        <div class="stat-label">Racha</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="home-kcal-total">0</div>
+        <div class="stat-label">Kcal tot</div>
+      </div>
+    </div>
+
+    <!-- Mode selector -->
+    <div class="label" style="margin-bottom:12px;">Elige tu modo de hoy</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
+      <div class="mode-card selected" id="mode-fast" onclick="selectMode('fast')">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:var(--font-display);font-size:26px;color:var(--hit-green);">⚡ RÁPIDO</div>
+          <div class="badge">40 MIN</div>
+        </div>
+        <p class="caption">Cardio + fuerza express. Sin pausas largas.</p>
+      </div>
+      <div class="mode-card" id="mode-full" onclick="selectMode('full')">
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <div style="font-family:var(--font-display);font-size:26px;">💪 COMPLETO</div>
+          <div class="badge-gray">60 MIN</div>
+        </div>
+        <p class="caption">Fuerza, cardio y caminadora. Nivel alto.</p>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <button class="btn-primary" onclick="generateWorkout()" id="start-btn">
+      <span>GENERAR RUTINA</span>
+    </button>
+
+    <div class="divider"></div>
+
+    <!-- Last workout -->
+    <div class="label" style="margin-bottom:12px;">Última sesión</div>
+    <div class="card-dark" id="last-workout-card">
+      <p class="caption" style="text-align:center;">Aún no has entrenado. ¡Hoy es el día! 🔥</p>
+    </div>
+
+  </div>
+  <div class="hit-nav">
+    <div class="nav-item active" onclick="goTo('screen-home')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span class="nav-label" style="color:#D6FF00;">Home</span>
+    </div>
+    <div class="nav-item" onclick="goTo('screen-history')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,17 9,12 13,14 20,7"/><polyline points="15,7 20,7 20,12"/></svg>
+      <span class="nav-label">Progreso</span>
+    </div>
+    <div class="nav-item" onclick="goTo('screen-profile')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-label">Perfil</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 5: GENERATING
+══════════════════════════════════════ -->
+<div id="screen-generating" class="screen">
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div style="margin-bottom:32px;">
+      <svg width="60" height="60" viewBox="0 0 48 48">
+        <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
+        <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
+        <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
+        <rect x="32" y="7" width="7" height="34" rx="3" fill="#D6FF00"/>
+        <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
+      </svg>
+    </div>
+    <div class="display-md accent" style="margin-bottom:8px;">PREPARANDO</div>
+    <div class="display-md" style="margin-bottom:20px;">TU RUTINA</div>
+    <div class="bar" style="margin:0 auto 24px;"></div>
+    <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <p class="caption" id="gen-msg" style="margin-top:8px;max-width:240px;line-height:1.6;">La IA está diseñando tu sesión de hoy...</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 6: EXERCISE
+══════════════════════════════════════ -->
+<div id="screen-exercise" class="screen">
+  <div class="safe-top"></div>
+  <!-- Header bar -->
+  <div style="padding:12px 20px 0;flex-shrink:0;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="label" id="ex-count">Ejercicio 1 / 7</div>
+      <button onclick="confirmQuit()" style="background:none;border:none;color:var(--hit-gray-light);font-size:12px;cursor:pointer;font-family:var(--font-body);">Salir</button>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="ex-progress" style="width:0%;"></div>
+    </div>
+  </div>
+
+  <div class="screen-body" style="padding-top:16px;">
+
+    <!-- Exercise chip tags -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;" id="ex-chips"></div>
+
+    <!-- Exercise name -->
+    <div class="display-lg accent" id="ex-name" style="margin-bottom:4px;line-height:1.05;">SENTADILLA</div>
+    <div class="label" id="ex-sets" style="margin-bottom:16px;color:var(--hit-green-dark);">3 SERIES · 12 REPS</div>
+
+    <!-- SVG Animation -->
+    <div id="ex-svg-container" style="margin-bottom:16px;background:#111;border-radius:var(--radius-lg);padding:20px;border:1px solid #2a2a2a;min-height:200px;display:flex;align-items:center;justify-content:center;"></div>
+
+    <!-- Description -->
+    <div class="card-dark" style="margin-bottom:16px;">
+      <div class="label" style="margin-bottom:6px;">Cómo hacerlo</div>
+      <p id="ex-desc" style="font-size:13px;line-height:1.7;color:#ccc;"></p>
+    </div>
+
+    <!-- Timer -->
+    <div id="ex-timer-section" style="display:none;margin-bottom:16px;">
+      <div class="label" style="margin-bottom:12px;text-align:center;">TEMPORIZADOR</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+        <div class="timer-ring">
+          <svg width="140" height="140" viewBox="0 0 140 140">
+            <circle class="timer-circle-bg" cx="70" cy="70" r="60"/>
+            <circle class="timer-circle-fill" id="timer-circle" cx="70" cy="70" r="60"
+              stroke-dasharray="376.99" stroke-dashoffset="0"/>
+          </svg>
+          <div class="timer-text">
+            <div style="font-family:var(--font-display);font-size:42px;color:var(--hit-green);line-height:1;" id="timer-display">0:30</div>
+            <div class="label">seg</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-ghost" style="width:auto;padding:10px 20px;" onclick="toggleTimer()" id="timer-btn">▶ INICIAR</button>
+          <button class="btn-ghost" style="width:auto;padding:10px 20px;" onclick="resetTimer()">↺ RESET</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Next button -->
+    <button class="btn-primary" onclick="nextExercise()" id="ex-next-btn">SIGUIENTE EJERCICIO →</button>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 7: REST
+══════════════════════════════════════ -->
+<div id="screen-rest" class="screen">
+  <div class="rest-bg"></div>
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
+    <div class="label" style="margin-bottom:12px;">DESCANSA</div>
+    <div class="display-xl accent" id="rest-timer" style="margin-bottom:8px;">0:30</div>
+    <div class="bar" style="margin:0 auto 20px;"></div>
+    <p class="caption" style="margin-bottom:32px;" id="rest-next-label">Próximo: Curl de Bíceps</p>
+    <button class="btn-outline" style="max-width:260px;" onclick="skipRest()">SALTAR DESCANSO →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 8: SUMMARY
+══════════════════════════════════════ -->
+<div id="screen-summary" class="screen">
+  <div class="safe-top"></div>
+  <div class="screen-body" style="padding-top:32px;text-align:center;">
+
+    <div style="font-size:48px;margin-bottom:16px;">🏆</div>
+    <div class="display-lg" style="margin-bottom:4px;">¡LO <span class="accent">LOGRASTE!</span></div>
+    <div class="bar" style="margin:0 auto 24px;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px;">
+      <div class="stat-card">
+        <div class="stat-value" id="sum-time">0:00</div>
+        <div class="stat-label">Tiempo</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="sum-exercises">0</div>
+        <div class="stat-label">Ejercicios</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="sum-kcal">0</div>
+        <div class="stat-label">Kcal quemadas</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="sum-streak">0</div>
+        <div class="stat-label">Racha días</div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;text-align:left;">
+      <div class="label" style="margin-bottom:12px;">Ejercicios completados</div>
+      <div id="sum-exercise-list" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+
+    <div class="card-dark" style="margin-bottom:24px;border-left:3px solid var(--hit-green);">
+      <div style="font-family:var(--font-display);font-size:18px;color:var(--hit-green);margin-bottom:4px;" id="sum-message">¡Excelente sesión!</div>
+      <p class="caption" id="sum-submessage">Mañana te espera una rutina diferente. 💪</p>
+    </div>
+
+    <button class="btn-primary" onclick="goHome()">VOLVER AL INICIO</button>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 9: HISTORY
+══════════════════════════════════════ -->
+<div id="screen-history" class="screen">
+  <div class="safe-top"></div>
+  <div class="app-header">
+    <div class="display-md">PROGRESO</div>
+  </div>
+  <div class="screen-body" style="padding-top:8px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:24px;">
+      <div class="stat-card">
+        <div class="stat-value" id="hist-sessions">0</div>
+        <div class="stat-label">Sesiones</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="hist-streak">0</div>
+        <div class="stat-label">Racha</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="hist-kcal">0</div>
+        <div class="stat-label">Kcal tot</div>
+      </div>
+    </div>
+    <div class="label" style="margin-bottom:12px;">Historial de sesiones</div>
+    <div id="history-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+  <div class="hit-nav">
+    <div class="nav-item" onclick="goTo('screen-home')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item active" onclick="goTo('screen-history')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,17 9,12 13,14 20,7"/><polyline points="15,7 20,7 20,12"/></svg>
+      <span class="nav-label" style="color:#D6FF00;">Progreso</span>
+    </div>
+    <div class="nav-item" onclick="goTo('screen-profile')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-label">Perfil</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 10: PROFILE
+══════════════════════════════════════ -->
+<div id="screen-profile" class="screen">
+  <div class="safe-top"></div>
+  <div class="app-header">
+    <div class="display-md">PERFIL</div>
+  </div>
+  <div class="screen-body" style="padding-top:8px;">
+    <div class="card" style="margin-bottom:20px;display:flex;align-items:center;gap:16px;">
+      <div style="width:52px;height:52px;background:rgba(214,255,0,.1);border:1px solid var(--hit-green);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <span style="font-family:var(--font-display);font-size:26px;color:var(--hit-green);" id="profile-initial">V</span>
+      </div>
+      <div>
+        <div style="font-family:var(--font-display);font-size:24px;" id="profile-name">VIRI</div>
+        <div class="caption" id="profile-weight">65 kg</div>
+      </div>
+    </div>
+
+    <div class="label" style="margin-bottom:12px;">Editar datos</div>
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <div class="input-wrap">
+        <label class="label">Nombre</label>
+        <input id="profile-name-input" class="hit-input" type="text"/>
+      </div>
+      <div class="input-wrap">
+        <label class="label">Peso (kg)</label>
+        <input id="profile-weight-input" class="hit-input" type="number" inputmode="decimal"/>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveProfile()" style="margin-bottom:16px;">GUARDAR CAMBIOS</button>
+
+    <div class="divider"></div>
+    <button class="btn-ghost" onclick="resetApp()" style="color:#ff4444;border-color:#2a2a2a;">Resetear app y datos</button>
+  </div>
+  <div class="hit-nav">
+    <div class="nav-item" onclick="goTo('screen-home')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/><path d="M9 21V12h6v9"/></svg>
+      <span class="nav-label">Home</span>
+    </div>
+    <div class="nav-item" onclick="goTo('screen-history')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="4,17 9,12 13,14 20,7"/><polyline points="15,7 20,7 20,12"/></svg>
+      <span class="nav-label">Progreso</span>
+    </div>
+    <div class="nav-item active" onclick="goTo('screen-profile')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#D6FF00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span class="nav-label" style="color:#D6FF00;">Perfil</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     OVERLAY: CONFIRM QUIT
+══════════════════════════════════════ -->
+<div class="overlay" id="overlay-quit">
+  <div class="modal">
+    <div class="display-sm" style="margin-bottom:8px;">¿SALIR DEL <span class="accent">ENTRENAMIENTO?</span></div>
+    <div class="bar" style="margin-bottom:16px;"></div>
+    <p class="caption" style="margin-bottom:24px;line-height:1.7;">Si sales ahora, esta sesión no contará para tu racha. ¿Segura?</p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn-primary" onclick="closeQuit()">CONTINUAR ENTRENANDO</button>
+      <button class="btn-ghost" onclick="quitWorkout()">Sí, salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div style="font-family:var(--font-display);font-size:15px;color:var(--hit-green);" id="toast-title">¡Listo!</div>
+  <div class="caption" id="toast-msg"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const STORAGE_KEY = 'hit_app_v1';
+let state = {
+  name: '', weight: 65, hasBiometric: false,
+  streak: 0, lastWorkoutDate: null,
+  totalWorkouts: 0, totalKcal: 0,
+  history: []
+};
+
+let currentWorkout = [];
+let currentExIndex = 0;
+let workoutStartTime = null;
+let selectedMode = 'fast';
+let workoutKcal = 0;
+
+// Timer state
+let timerInterval = null;
+let timerSeconds = 30;
+let timerTotal = 30;
+let timerRunning = false;
+
+// Rest timer
+let restInterval = null;
+let restSeconds = 30;
+
+// ═══════════════════════════════════════
+// PERSISTENCE
+// ═══════════════════════════════════════
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+}
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+    if (s) state = {...state, ...JSON.parse(s)};
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+function init() {
+  loadState();
+  if (!state.name) {
+    goTo('screen-onboard');
+  } else if (state.hasBiometric) {
+    document.getElementById('login-name').textContent = state.name.toUpperCase();
+    goTo('screen-login');
+  } else {
+    loadHome();
+    goTo('screen-home');
+  }
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(screenId).classList.add('active');
+}
+
+// ═══════════════════════════════════════
+// ONBOARDING
+// ═══════════════════════════════════════
+function completeOnboarding() {
+  const name = document.getElementById('ob-name').value.trim();
+  const weight = parseFloat(document.getElementById('ob-weight').value);
+  if (!name) { showToast('¡Falta tu nombre!', 'Escríbelo para continuar'); return; }
+  if (!weight || weight < 20 || weight > 300) { showToast('Peso inválido', 'Ingresa tu peso en kg'); return; }
+  state.name = name;
+  state.weight = weight;
+  saveState();
+  goTo('screen-biometric');
+}
+
+// ═══════════════════════════════════════
+// BIOMETRIC
+// ═══════════════════════════════════════
+async function registerBiometric() {
+  if (!window.PublicKeyCredential) {
+    showToast('No disponible', 'Tu navegador no soporta huella digital');
+    skipBiometric(); return;
+  }
+  try {
+    const credential = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'HIT App', id: location.hostname || 'localhost' },
+        user: { id: new TextEncoder().encode(state.name), name: state.name, displayName: state.name },
+        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
+        timeout: 60000,
+      }
+    });
+    state.hasBiometric = true;
+    state.credentialId = Array.from(new Uint8Array(credential.rawId));
+    saveState();
+    showToast('¡Huella registrada!', 'Ya puedes entrar con tu huella cada día 🔐');
+    setTimeout(() => { loadHome(); goTo('screen-home'); }, 1200);
+  } catch(e) {
+    showToast('No se pudo registrar', 'Intentalo de nuevo o entra sin huella');
+  }
+}
+
+async function authenticateBiometric() {
+  if (!state.hasBiometric || !window.PublicKeyCredential) { skipBiometric(); return; }
+  try {
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        allowCredentials: state.credentialId ? [{ type: 'public-key', id: new Uint8Array(state.credentialId) }] : [],
+        userVerification: 'required',
+        timeout: 60000,
+      }
+    });
+    loadHome();
+    goTo('screen-home');
+  } catch(e) {
+    showToast('Autenticación fallida', 'Toca el ícono para intentar de nuevo');
+  }
+}
+
+function skipBiometric() {
+  loadHome();
+  goTo('screen-home');
+}
+
+// ═══════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════
+function loadHome() {
+  updateStreak();
+  const days = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+  const months = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
+  const now = new Date();
+  document.getElementById('home-date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  document.getElementById('home-name').textContent = state.name.split(' ')[0].toUpperCase();
+  document.getElementById('home-streak').textContent = state.streak;
+  document.getElementById('home-streak-2').textContent = state.streak;
+  document.getElementById('home-total-workouts').textContent = state.totalWorkouts;
+  document.getElementById('home-kcal-total').textContent = Math.round(state.totalKcal);
+
+  // Last workout
+  if (state.history.length > 0) {
+    const last = state.history[state.history.length - 1];
+    document.getElementById('last-workout-card').innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-family:var(--font-display);font-size:18px;">${last.mode === 'fast' ? '⚡ RÁPIDO' : '💪 COMPLETO'}</div>
+        <div class="badge">${last.date}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;">
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${last.time}</div><div class="label">Tiempo</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${last.exercises}</div><div class="label">Ejerc.</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${Math.round(last.kcal)}</div><div class="label">Kcal</div></div>
+      </div>
+    `;
+  }
+}
+
+function updateStreak() {
+  if (!state.lastWorkoutDate) return;
+  const today = new Date().toDateString();
+  const last = new Date(state.lastWorkoutDate).toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (last !== today && last !== yesterday) {
+    state.streak = 0;
+    saveState();
+  }
+}
+
+function selectMode(mode) {
+  selectedMode = mode;
+  document.getElementById('mode-fast').classList.toggle('selected', mode === 'fast');
+  document.getElementById('mode-full').classList.toggle('selected', mode === 'full');
+  const btn = document.getElementById('mode-full');
+  btn.querySelector('.badge-gray') && (btn.querySelector('.badge-gray').style.color = mode === 'full' ? 'var(--hit-green)' : '');
+}
+
+// ═══════════════════════════════════════
+// GENERATE WORKOUT
+// ═══════════════════════════════════════
+async function generateWorkout() {
+  goTo('screen-generating');
+  const msgs = [
+    'Analizando tu nivel y equipamiento...',
+    'Diseñando ejercicios variados...',
+    'Calculando series y tiempos...',
+    'Listo para sudar 🔥'
+  ];
+  let mi = 0;
+  const msgEl = document.getElementById('gen-msg');
+  const msgInterval = setInterval(() => {
+    mi = (mi + 1) % msgs.length;
+    msgEl.textContent = msgs[mi];
+  }, 1800);
+
+  const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const today = dayNames[new Date().getDay()];
+  const duration = selectedMode === 'fast' ? '40 minutos' : '60 minutos';
+
+  const prompt = `Eres un entrenador personal experto. Genera una rutina de ejercicio en casa para hoy ${today}.
+
+DATOS DEL USUARIO:
+- Nivel: Intermedio (hace ejercicio ocasionalmente)
+- Duración: ${duration}
+- Equipamiento disponible: cuerpo (sin equipo), mancuernas, caminadora doméstica
+- Objetivo: Mix de fuerza, tonificación y cardio
+
+INSTRUCCIONES:
+- Genera exactamente ${selectedMode === 'fast' ? 6 : 8} ejercicios
+- Varía el tipo: fuerza con mancuernas, bodyweight, cardio, caminadora
+- Incluye calentamiento y enfriamiento
+- Para la caminadora, especifica velocidad e inclinación sugerida
+- Cada ejercicio debe ser diferente y específico para este día
+
+RESPONDE ÚNICAMENTE con un JSON válido, sin texto adicional, con este formato exacto:
+{
+  "focus": "FUERZA TOTAL",
+  "exercises": [
+    {
+      "name": "NOMBRE EN MAYÚSCULAS",
+      "type": "strength|cardio|treadmill|core|stretch",
+      "equipment": "bodyweight|dumbbell|treadmill",
+      "sets": 3,
+      "reps": "12",
+      "duration_seconds": 40,
+      "kcal_per_set": 8,
+      "description": "Descripción clara de cómo ejecutar el ejercicio correctamente en 2-3 oraciones.",
+      "muscles": ["músculo1", "músculo2"]
+    }
+  ]
+}`;
+
+  try {
+    const response = await fetch('/api/workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt })
+    });
+
+    clearInterval(msgInterval);
+    const data = await response.json();
+    const text = data.content[0].text.trim();
+    const clean = text.replace(/```json|```/g, '').trim();
+    const workout = JSON.parse(clean);
+    currentWorkout = workout.exercises;
+    currentExIndex = 0;
+    workoutKcal = 0;
+    workoutStartTime = Date.now();
+    showExercise(0);
+  } catch(e) {
+    clearInterval(msgInterval);
+    // Fallback workout
+    currentWorkout = getFallbackWorkout(selectedMode);
+    currentExIndex = 0;
+    workoutKcal = 0;
+    workoutStartTime = Date.now();
+    showExercise(0);
+  }
+}
+
+function getFallbackWorkout(mode) {
+  const base = [
+    { name: 'SENTADILLA CON MANCUERNAS', type: 'strength', equipment: 'dumbbell', sets: 3, reps: '12', duration_seconds: 45, kcal_per_set: 12, description: 'Párate con los pies al ancho de los hombros sosteniendo las mancuernas a los lados. Baja lentamente doblando las rodillas hasta que los muslos queden paralelos al suelo. Sube empujando con los talones.', muscles: ['Cuádriceps', 'Glúteos'] },
+    { name: 'FLEXIONES DE PECHO', type: 'strength', equipment: 'bodyweight', sets: 3, reps: '10', duration_seconds: 40, kcal_per_set: 8, description: 'En posición de plancha, manos al ancho de los hombros. Baja el pecho hasta casi tocar el suelo manteniendo el cuerpo recto. Empuja hacia arriba de forma explosiva.', muscles: ['Pecho', 'Tríceps'] },
+    { name: 'CAMINADORA INCLINADA', type: 'treadmill', equipment: 'treadmill', sets: 1, reps: '10 min', duration_seconds: 600, kcal_per_set: 60, description: 'Configura velocidad de 5-6 km/h con inclinación al 8-10%. Mantén postura erguida, brazos en movimiento natural. Es cardio de bajo impacto pero alta efectividad.', muscles: ['Piernas', 'Cardio'] },
+    { name: 'CURL DE BÍCEPS', type: 'strength', equipment: 'dumbbell', sets: 3, reps: '12', duration_seconds: 35, kcal_per_set: 7, description: 'De pie con mancuernas a los lados, codos pegados al cuerpo. Sube las mancuernas rotando levemente las muñecas. Baja lentamente en 3 tiempos.', muscles: ['Bíceps'] },
+    { name: 'PLANCHA ABDOMINAL', type: 'core', equipment: 'bodyweight', sets: 3, reps: '30 seg', duration_seconds: 30, kcal_per_set: 5, description: 'Apóyate en antebrazos y puntas de pies. Mantén el cuerpo completamente recto como tabla, contrae abdomen. Respira de forma constante durante toda la serie.', muscles: ['Core', 'Abdomen'] },
+    { name: 'ZANCADAS ALTERNADAS', type: 'strength', equipment: 'bodyweight', sets: 3, reps: '10 cada lado', duration_seconds: 45, kcal_per_set: 10, description: 'Da un paso largo hacia adelante, baja la rodilla trasera hacia el suelo sin tocarlo. Regresa al centro y alterna piernas. Mantén el torso erguido en todo momento.', muscles: ['Glúteos', 'Cuádriceps'] },
+  ];
+  if (mode === 'full') {
+    base.push(
+      { name: 'PRESS DE HOMBROS', type: 'strength', equipment: 'dumbbell', sets: 3, reps: '10', duration_seconds: 40, kcal_per_set: 9, description: 'Sentada o de pie, sujeta las mancuernas a la altura de los hombros con codos a 90°. Empuja hacia arriba hasta extender los brazos sin bloquear los codos. Baja controlado.', muscles: ['Hombros', 'Tríceps'] },
+      { name: 'ESTIRAMIENTO FINAL', type: 'stretch', equipment: 'bodyweight', sets: 1, reps: '5 min', duration_seconds: 300, kcal_per_set: 5, description: 'Dedica 5 minutos a estirar los músculos trabajados. Incluye cuádriceps, isquiotibiales, pecho y hombros. Mantén cada posición 20-30 segundos respirando profundo.', muscles: ['Todo el cuerpo'] }
+    );
+  }
+  return base;
+}
+
+// ═══════════════════════════════════════
+// EXERCISE DISPLAY
+// ═══════════════════════════════════════
+function showExercise(index) {
+  stopTimer();
+  const ex = currentWorkout[index];
+  const total = currentWorkout.length;
+
+  document.getElementById('ex-count').textContent = `Ejercicio ${index + 1} / ${total}`;
+  document.getElementById('ex-progress').style.width = `${((index) / total) * 100}%`;
+  document.getElementById('ex-name').textContent = ex.name;
+  document.getElementById('ex-sets').textContent = `${ex.sets > 1 ? ex.sets + ' SERIES · ' : ''}${ex.reps}`;
+  document.getElementById('ex-desc').textContent = ex.description;
+
+  // Chips
+  const chips = document.getElementById('ex-chips');
+  chips.innerHTML = '';
+  (ex.muscles || []).slice(0, 3).forEach(m => {
+    const chip = document.createElement('span');
+    chip.className = 'chip active';
+    chip.textContent = m;
+    chips.appendChild(chip);
+  });
+
+  // SVG Animation
+  document.getElementById('ex-svg-container').innerHTML = getExerciseSVG(ex.type, ex.equipment);
+
+  // Timer
+  const timerSection = document.getElementById('ex-timer-section');
+  if (ex.duration_seconds && ex.duration_seconds <= 120) {
+    timerSection.style.display = 'block';
+    timerSeconds = ex.duration_seconds;
+    timerTotal = ex.duration_seconds;
+    timerRunning = false;
+    updateTimerDisplay();
+    document.getElementById('timer-btn').textContent = '▶ INICIAR';
+  } else {
+    timerSection.style.display = 'none';
+  }
+
+  // Next button
+  const nextBtn = document.getElementById('ex-next-btn');
+  if (index === total - 1) {
+    nextBtn.textContent = '¡TERMINAR ENTRENAMIENTO! 🏆';
+  } else {
+    nextBtn.textContent = 'SIGUIENTE EJERCICIO →';
+  }
+
+  goTo('screen-exercise');
+}
+
+function getExerciseSVG(type, equipment) {
+  const svgs = {
+    strength_dumbbell: `
+      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
+        <!-- Body -->
+        <circle cx="100" cy="50" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+        <!-- Torso -->
+        <rect x="85" y="68" width="30" height="45" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+        <!-- Left arm with dumbbell -->
+        <g style="animation:curl 1.5s ease-in-out infinite;transform-origin:75px 80px;">
+          <rect x="40" y="75" width="35" height="8" rx="4" fill="#3A3A3A"/>
+          <rect x="32" y="70" width="10" height="18" rx="4" fill="#D6FF00"/>
+          <rect x="72" y="72" width="6" height="14" rx="3" fill="#D6FF00"/>
+        </g>
+        <!-- Right arm with dumbbell -->
+        <g style="animation:curl 1.5s ease-in-out infinite .4s;transform-origin:125px 80px;">
+          <rect x="125" y="75" width="35" height="8" rx="4" fill="#3A3A3A"/>
+          <rect x="158" y="70" width="10" height="18" rx="4" fill="#D6FF00"/>
+          <rect x="122" y="72" width="6" height="14" rx="3" fill="#D6FF00"/>
+        </g>
+        <!-- Legs -->
+        <rect x="86" y="110" width="12" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+        <rect x="102" y="110" width="12" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+        <!-- Feet -->
+        <rect x="80" y="160" width="20" height="8" rx="4" fill="#D6FF00"/>
+        <rect x="97" y="160" width="20" height="8" rx="4" fill="#D6FF00"/>
+        <!-- Floor -->
+        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
+      </svg>`,
+    strength_bodyweight: `
+      <svg class="exercise-svg" viewBox="0 0 200 220" style="height:180px;">
+        <g style="animation:squat 1.8s ease-in-out infinite;transform-origin:100px 120px;">
+          <!-- Head -->
+          <circle cx="100" cy="45" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+          <!-- Torso -->
+          <rect x="82" y="63" width="36" height="50" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <!-- Arms -->
+          <rect x="55" y="65" width="28" height="8" rx="4" fill="#3A3A3A" transform="rotate(30,55,65)"/>
+          <rect x="117" y="65" width="28" height="8" rx="4" fill="#3A3A3A" transform="rotate(-30,145,65)"/>
+          <!-- Legs -->
+          <rect x="84" y="110" width="14" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <rect x="102" y="110" width="14" height="55" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <!-- Feet -->
+          <rect x="76" y="160" width="24" height="9" rx="4" fill="#D6FF00"/>
+          <rect x="100" y="160" width="24" height="9" rx="4" fill="#D6FF00"/>
+        </g>
+        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
+      </svg>`,
+    treadmill: `
+      <svg class="exercise-svg" viewBox="0 0 220 200" style="height:180px;">
+        <!-- Treadmill base -->
+        <rect x="20" y="150" width="180" height="16" rx="6" fill="#1C1C1C" stroke="#2a2a2a" stroke-width="1.5"/>
+        <rect x="30" y="138" width="160" height="14" rx="4" fill="#2a2a2a"/>
+        <!-- Belt lines animated -->
+        <rect x="40" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".6" style="animation:walk 0.8s linear infinite;"/>
+        <rect x="90" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".4" style="animation:walk 0.8s linear infinite .2s;"/>
+        <rect x="140" y="141" width="30" height="3" rx="2" fill="#D6FF00" opacity=".6" style="animation:walk 0.8s linear infinite .4s;"/>
+        <!-- Handles -->
+        <rect x="60" y="70" width="8" height="80" rx="4" fill="#3A3A3A"/>
+        <rect x="152" y="70" width="8" height="80" rx="4" fill="#3A3A3A"/>
+        <rect x="60" y="70" width="100" height="8" rx="4" fill="#2a2a2a"/>
+        <!-- Console -->
+        <rect x="75" y="58" width="70" height="14" rx="4" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1"/>
+        <circle cx="95" cy="65" r="3" fill="#D6FF00"/>
+        <circle cx="110" cy="65" r="3" fill="#D6FF00" opacity=".5"/>
+        <circle cx="125" cy="65" r="3" fill="#D6FF00" opacity=".3"/>
+        <!-- Walking person -->
+        <g style="animation:walk 1s ease-in-out infinite;transform-origin:110px 120px;">
+          <circle cx="110" cy="85" r="13" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+          <rect x="100" y="98" width="20" height="35" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <line x1="100" y1="103" x2="82" y2="118" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="120" y1="103" x2="138" y2="118" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="105" y1="133" x2="98" y2="152" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
+          <line x1="115" y1="133" x2="122" y2="152" stroke="#D6FF00" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </svg>`,
+    cardio: `
+      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
+        <g style="animation:jump 1.2s ease-in-out infinite;transform-origin:100px 120px;">
+          <circle cx="100" cy="42" r="18" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+          <rect x="83" y="60" width="34" height="48" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <!-- Arms spread -->
+          <line x1="83" y1="72" x2="52" y2="90" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
+          <line x1="117" y1="72" x2="148" y2="90" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
+          <!-- Legs spread -->
+          <line x1="92" y1="108" x2="72" y2="155" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
+          <line x1="108" y1="108" x2="128" y2="155" stroke="#D6FF00" stroke-width="4" stroke-linecap="round"/>
+          <!-- Feet -->
+          <rect x="60" y="152" width="20" height="8" rx="4" fill="#D6FF00"/>
+          <rect x="120" y="152" width="20" height="8" rx="4" fill="#D6FF00"/>
+        </g>
+        <!-- Motion lines -->
+        <line x1="145" y1="100" x2="160" y2="100" stroke="#D6FF00" stroke-width="2" opacity=".4" stroke-dasharray="4,4"/>
+        <line x1="40" y1="100" x2="55" y2="100" stroke="#D6FF00" stroke-width="2" opacity=".4" stroke-dasharray="4,4"/>
+        <line x1="30" y1="175" x2="170" y2="175" stroke="#2a2a2a" stroke-width="2"/>
+      </svg>`,
+    core: `
+      <svg class="exercise-svg" viewBox="0 0 220 160" style="height:160px;">
+        <g style="animation:plank 2s ease-in-out infinite;transform-origin:110px 100px;">
+          <!-- Plank body -->
+          <ellipse cx="110" cy="95" rx="65" ry="12" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <!-- Head -->
+          <circle cx="170" cy="88" r="14" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+          <!-- Arms support -->
+          <rect x="140" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
+          <rect x="160" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
+          <!-- Feet -->
+          <rect x="42" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
+          <rect x="58" y="100" width="10" height="28" rx="5" fill="#D6FF00"/>
+          <!-- Core highlight -->
+          <rect x="88" y="88" width="40" height="14" rx="4" fill="rgba(214,255,0,.15)" stroke="#D6FF00" stroke-width="1" stroke-dasharray="3,3"/>
+        </g>
+        <line x1="20" y1="130" x2="200" y2="130" stroke="#2a2a2a" stroke-width="2"/>
+      </svg>`,
+    stretch: `
+      <svg class="exercise-svg" viewBox="0 0 200 200" style="height:180px;">
+        <!-- Stretching figure -->
+        <circle cx="100" cy="45" r="16" fill="#1C1C1C" stroke="#D6FF00" stroke-width="2"/>
+        <!-- Torso tilted -->
+        <g style="animation:situp 3s ease-in-out infinite;transform-origin:100px 90px;">
+          <rect x="86" y="60" width="28" height="42" rx="8" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+          <line x1="86" y1="72" x2="55" y2="55" stroke="#D6FF00" stroke-width="3.5" stroke-linecap="round"/>
+          <line x1="114" y1="72" x2="145" y2="55" stroke="#D6FF00" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+        <!-- Legs straight -->
+        <rect x="87" y="100" width="12" height="60" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+        <rect x="101" y="100" width="12" height="60" rx="6" fill="#1C1C1C" stroke="#D6FF00" stroke-width="1.5"/>
+        <rect x="80" y="156" width="22" height="8" rx="4" fill="#D6FF00"/>
+        <rect x="98" y="156" width="22" height="8" rx="4" fill="#D6FF00"/>
+        <!-- Glow effect -->
+        <circle cx="100" cy="100" r="70" fill="none" stroke="#D6FF00" stroke-width="1" opacity=".05"/>
+        <line x1="30" y1="172" x2="170" y2="172" stroke="#2a2a2a" stroke-width="2"/>
+      </svg>`
+  };
+
+  const key = `${type}_${equipment}`;
+  return svgs[key] || svgs[type] || svgs['strength_bodyweight'];
+}
+
+// ═══════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════
+function toggleTimer() {
+  if (timerRunning) {
+    stopTimer();
+    document.getElementById('timer-btn').textContent = '▶ CONTINUAR';
+  } else {
+    startTimer();
+    document.getElementById('timer-btn').textContent = '⏸ PAUSAR';
+  }
+}
+
+function startTimer() {
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    updateTimerDisplay();
+    if (timerSeconds <= 0) {
+      stopTimer();
+      document.getElementById('timer-btn').textContent = '✓ LISTO';
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+}
+
+function resetTimer() {
+  stopTimer();
+  timerSeconds = timerTotal;
+  timerRunning = false;
+  document.getElementById('timer-btn').textContent = '▶ INICIAR';
+  updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+  const min = Math.floor(timerSeconds / 60);
+  const sec = timerSeconds % 60;
+  document.getElementById('timer-display').textContent = `${min}:${sec.toString().padStart(2,'0')}`;
+  // Ring
+  const circumference = 376.99;
+  const progress = timerSeconds / timerTotal;
+  const offset = circumference * (1 - progress);
+  document.getElementById('timer-circle').style.strokeDashoffset = offset;
+}
+
+// ═══════════════════════════════════════
+// NEXT EXERCISE / REST
+// ═══════════════════════════════════════
+function nextExercise() {
+  stopTimer();
+  const ex = currentWorkout[currentExIndex];
+  // Accumulate kcal
+  workoutKcal += (ex.kcal_per_set || 8) * (ex.sets || 1);
+
+  if (currentExIndex >= currentWorkout.length - 1) {
+    finishWorkout();
+    return;
+  }
+
+  // Show rest screen
+  const nextEx = currentWorkout[currentExIndex + 1];
+  document.getElementById('rest-next-label').textContent = `Próximo: ${nextEx.name}`;
+  restSeconds = 30;
+  startRestTimer();
+  goTo('screen-rest');
+}
+
+function startRestTimer() {
+  clearInterval(restInterval);
+  updateRestDisplay();
+  restInterval = setInterval(() => {
+    restSeconds--;
+    updateRestDisplay();
+    if (restSeconds <= 0) {
+      clearInterval(restInterval);
+      currentExIndex++;
+      showExercise(currentExIndex);
+    }
+  }, 1000);
+}
+
+function updateRestDisplay() {
+  const min = Math.floor(restSeconds / 60);
+  const sec = restSeconds % 60;
+  document.getElementById('rest-timer').textContent = `${min}:${sec.toString().padStart(2,'0')}`;
+}
+
+function skipRest() {
+  clearInterval(restInterval);
+  currentExIndex++;
+  showExercise(currentExIndex);
+}
+
+// ═══════════════════════════════════════
+// FINISH WORKOUT
+// ═══════════════════════════════════════
+function finishWorkout() {
+  stopTimer();
+  clearInterval(restInterval);
+
+  const elapsed = Math.round((Date.now() - workoutStartTime) / 1000);
+  const min = Math.floor(elapsed / 60);
+  const sec = elapsed % 60;
+  const timeStr = `${min}:${sec.toString().padStart(2,'0')}`;
+
+  // Update streak
+  const today = new Date().toDateString();
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (state.lastWorkoutDate === yesterday || !state.lastWorkoutDate) {
+    state.streak++;
+  } else if (state.lastWorkoutDate !== today) {
+    state.streak = 1;
+  }
+  state.lastWorkoutDate = today;
+  state.totalWorkouts++;
+  state.totalKcal += workoutKcal;
+
+  // Save to history
+  const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  const now = new Date();
+  state.history.push({
+    date: `${days[now.getDay()]} ${now.getDate()}/${now.getMonth()+1}`,
+    mode: selectedMode,
+    time: timeStr,
+    exercises: currentWorkout.length,
+    kcal: workoutKcal,
+    timestamp: Date.now()
+  });
+  if (state.history.length > 30) state.history.shift();
+  saveState();
+
+  // Summary screen
+  document.getElementById('sum-time').textContent = timeStr;
+  document.getElementById('sum-exercises').textContent = currentWorkout.length;
+  document.getElementById('sum-kcal').textContent = Math.round(workoutKcal);
+  document.getElementById('sum-streak').textContent = state.streak;
+
+  const messages = [
+    ['¡SESIÓN COMPLETADA!', `Quemaste ${Math.round(workoutKcal)} kcal en ${min} minutos. 🔥`],
+    ['¡IMPARABLE!', `${state.streak} días de racha. Sigue así, campeona! 💪`],
+    ['¡LO DISTE TODO!', `Cada rep cuenta. Tu cuerpo te lo agradece. ✨`],
+  ];
+  const msg = messages[Math.floor(Math.random() * messages.length)];
+  document.getElementById('sum-message').textContent = msg[0];
+  document.getElementById('sum-submessage').textContent = msg[1];
+
+  const list = document.getElementById('sum-exercise-list');
+  list.innerHTML = currentWorkout.map((ex, i) => `
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #2a2a2a;">
+      <span style="color:var(--hit-green);font-family:var(--font-display);font-size:16px;min-width:24px;">${i+1}</span>
+      <div>
+        <div style="font-size:13px;font-weight:700;">${ex.name}</div>
+        <div class="caption">${ex.sets > 1 ? ex.sets + ' series · ' : ''}${ex.reps}</div>
+      </div>
+      <span style="margin-left:auto;color:var(--hit-green);font-size:12px;">~${Math.round((ex.kcal_per_set||8)*(ex.sets||1))} kcal</span>
+    </div>
+  `).join('');
+
+  goTo('screen-summary');
+  launchConfetti();
+}
+
+function goHome() {
+  loadHome();
+  goTo('screen-home');
+}
+
+// ═══════════════════════════════════════
+// QUIT WORKOUT
+// ═══════════════════════════════════════
+function confirmQuit() {
+  document.getElementById('overlay-quit').classList.add('open');
+}
+function closeQuit() {
+  document.getElementById('overlay-quit').classList.remove('open');
+}
+function quitWorkout() {
+  stopTimer();
+  clearInterval(restInterval);
+  document.getElementById('overlay-quit').classList.remove('open');
+  loadHome();
+  goTo('screen-home');
+}
+
+// ═══════════════════════════════════════
+// HISTORY SCREEN
+// ═══════════════════════════════════════
+function loadHistory() {
+  document.getElementById('hist-sessions').textContent = state.totalWorkouts;
+  document.getElementById('hist-streak').textContent = state.streak;
+  document.getElementById('hist-kcal').textContent = Math.round(state.totalKcal);
+
+  const list = document.getElementById('history-list');
+  if (state.history.length === 0) {
+    list.innerHTML = '<div class="card-dark"><p class="caption" style="text-align:center;">Aún no hay sesiones registradas.</p></div>';
+    return;
+  }
+  list.innerHTML = [...state.history].reverse().map(h => `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-family:var(--font-display);font-size:20px;">${h.mode === 'fast' ? '⚡ RÁPIDO' : '💪 COMPLETO'}</div>
+        <div class="badge-gray">${h.date}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.time}</div><div class="label">Tiempo</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.exercises}</div><div class="label">Ejercicios</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${Math.round(h.kcal)}</div><div class="label">Kcal</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════════════════
+// PROFILE
+// ═══════════════════════════════════════
+function loadProfile() {
+  document.getElementById('profile-initial').textContent = state.name[0].toUpperCase();
+  document.getElementById('profile-name').textContent = state.name.toUpperCase();
+  document.getElementById('profile-weight').textContent = `${state.weight} kg`;
+  document.getElementById('profile-name-input').value = state.name;
+  document.getElementById('profile-weight-input').value = state.weight;
+}
+
+function saveProfile() {
+  const name = document.getElementById('profile-name-input').value.trim();
+  const weight = parseFloat(document.getElementById('profile-weight-input').value);
+  if (!name || !weight) { showToast('Datos incompletos', 'Revisa nombre y peso'); return; }
+  state.name = name;
+  state.weight = weight;
+  saveState();
+  loadProfile();
+  showToast('¡Guardado!', 'Tu perfil fue actualizado');
+}
+
+function resetApp() {
+  if (confirm('¿Segura? Esto borrará todo tu progreso y datos.')) {
+    localStorage.removeItem(STORAGE_KEY);
+    location.reload();
+  }
+}
+
+// ═══════════════════════════════════════
+// NAVIGATION HOOK
+// ═══════════════════════════════════════
+const origGoTo = goTo;
+window.goTo = function(id) {
+  if (id === 'screen-history') loadHistory();
+  if (id === 'screen-profile') loadProfile();
+  origGoTo(id);
+};
+
+// ═══════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════
+let toastTimeout;
+function showToast(title, msg) {
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-msg').textContent = msg;
+  const t = document.getElementById('toast');
+  t.classList.add('show');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ═══════════════════════════════════════
+// CONFETTI
+// ═══════════════════════════════════════
+function launchConfetti() {
+  const colors = ['#D6FF00', '#fff', '#8FAA00', '#ffcc00'];
+  for (let i = 0; i < 40; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.top = '-10px';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.8) + 's';
+    el.style.width = el.style.height = (6 + Math.random() * 8) + 'px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+// ═══════════════════════════════════════
+// START
+// ═══════════════════════════════════════
+init();
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
