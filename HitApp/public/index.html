@@ -447,17 +447,17 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
       <div class="mode-card selected" id="mode-fast" onclick="selectMode('fast')">
         <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--font-display);font-size:26px;color:var(--hit-green);">⚡ RÁPIDO</div>
-          <div class="badge">40 MIN</div>
+          <div style="font-family:var(--font-display);font-size:26px;color:var(--hit-green);">⚡ LIGERO</div>
+          <div class="badge">8 EJERCICIOS</div>
         </div>
-        <p class="caption">Cardio + fuerza express. Sin pausas largas.</p>
+        <p class="caption">Fuerza y cardio moderado. Ideal para días ocupados.</p>
       </div>
       <div class="mode-card" id="mode-full" onclick="selectMode('full')">
         <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--font-display);font-size:26px;">💪 COMPLETO</div>
-          <div class="badge-gray">60 MIN</div>
+          <div style="font-family:var(--font-display);font-size:26px;">🔥 INTENSO</div>
+          <div class="badge-gray">15 EJERCICIOS</div>
         </div>
-        <p class="caption">Fuerza, cardio y caminadora. Nivel alto.</p>
+        <p class="caption">Fuerza máxima, cardio y caminadora. Sin límites.</p>
       </div>
     </div>
 
@@ -943,28 +943,25 @@ async function generateWorkout() {
 
   const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
   const today = dayNames[new Date().getDay()];
-  const duration = selectedMode === 'fast' ? '40 minutos' : '60 minutos';
-
   const prompt = `Eres un entrenador personal experto. Genera una rutina de ejercicio en casa para hoy ${today}.
 
 DATOS DEL USUARIO:
 - Nivel: Intermedio
-- Duración objetivo: ${duration} (puede pasarse)
+- Modo: ${selectedMode === 'fast' ? 'LIGERO (8 ejercicios)' : 'INTENSO (15 ejercicios)'}
 - Equipamiento: cuerpo, mancuernas, caminadora doméstica
-- Objetivo: Mix intenso de fuerza y cardio
+- Objetivo: Mix de fuerza y cardio
 
 INSTRUCCIONES IMPORTANTES:
-- Genera EXACTAMENTE 15 ejercicios, sin importar el tiempo que tome
+- Genera EXACTAMENTE ${selectedMode === 'fast' ? 8 : 15} ejercicios
 - Alterna intensidad: 2 ejercicios fuertes, 1 moderado para recuperar
-- 5 series por ejercicio (excepto caminadora que es 1 serie larga y estiramiento)
+- 5 series por ejercicio (excepto caminadora 1 serie larga y estiramiento)
 - El estiramiento final debe tener duration_seconds: 120 (2 minutos)
 - Varía: fuerza con mancuernas, bodyweight, cardio, core, caminadora
-- Para ejercicios por lado (ej. zancadas), indica "por lado" en reps
-- Para la caminadora especifica velocidad e inclinación
-- duration_seconds es el tiempo de UNA serie del ejercicio
-- Si es ejercicio por lado: duration_seconds es el tiempo de UN LADO
-- side_exercise: true si se hace por lado (izquierdo y derecho por separado)
-- description debe ser pasos numerados: "1. Haz esto. 2. Luego esto. 3. Así termina."
+- Para ejercicios por lado indica side_exercise: true y reps "X por lado"
+- duration_seconds es el tiempo de UNA serie (o UN LADO si es side_exercise)
+- description DEBE ser pasos numerados en este formato exacto:
+  "1. Posición inicial. 2. Movimiento principal. 3. Regreso. 4. Respiración."
+  Cada paso separado por punto y espacio, máximo 5 pasos.
 
 RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
 {
@@ -1073,7 +1070,14 @@ function showExercise(index) {
   document.getElementById('ex-progress').style.width = `${(index / total) * 100}%`;
   document.getElementById('ex-name').textContent = ex.name;
   document.getElementById('ex-sets').textContent = `${ex.sets} SERIES · ${ex.reps}`;
-  document.getElementById('ex-desc').textContent = ex.description;
+  // Render description as numbered steps
+  const descEl = document.getElementById('ex-desc');
+  const steps = ex.description.split(/(?=\d+\.)/).filter(s => s.trim());
+  if (steps.length > 1) {
+    descEl.innerHTML = steps.map(s => `<div style="margin-bottom:6px;">${s.trim()}</div>`).join('');
+  } else {
+    descEl.textContent = ex.description;
+  }
 
   // Chips
   const chips = document.getElementById('ex-chips');
