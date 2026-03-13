@@ -26,14 +26,32 @@
   --radius-xl:  24px;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{height:100%;background:#0a0a0a;}
+html{
+  height:100%;
+  background:#000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
 body{
-  height:100%;overflow:hidden;background:#000;
+  width:100%;
+  max-width:440px;
+  height:100vh;
+  max-height:100vh;
+  overflow:hidden;
+  background:#0a0a0a;
   font-family:var(--font-body);color:#fff;touch-action:manipulation;
-  max-width:430px;
-  margin:0 auto;
   position:relative;
-  box-shadow:-1px 0 0 #1a1a1a, 1px 0 0 #1a1a1a, 0 0 80px rgba(0,0,0,.9);
+  flex-shrink:0;
+}
+@media(min-width:500px){
+  html{ background: radial-gradient(ellipse at 50% 40%, #141414 0%, #000 70%); }
+  body{
+    height:calc(100vh - 48px);
+    max-height:860px;
+    border-radius:28px;
+    box-shadow:0 0 0 1px #222, 0 32px 80px rgba(0,0,0,.9);
+  }
 }
 
 /* ── SCREENS ── */
