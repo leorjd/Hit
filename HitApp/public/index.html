@@ -782,10 +782,36 @@ function loadState() {
   } catch(e){}
 }
 
+
+// ═══════════════════════════════════════
+// WAKELOCK & SESSION LOCK
+// ═══════════════════════════════════════
+let wakeLock = null;
+let sessionLocked = false;
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen');
+  } catch(e) {}
+}
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'hidden') {
+    releaseWakeLock();
+    if (state.name && state.hasBiometric) sessionLocked = true;
+  } else {
+    await requestWakeLock();
+    if (sessionLocked) { sessionLocked = false; goTo('screen-login'); }
+  }
+});
+
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
 function init() {
+  requestWakeLock();
   loadState();
   if (!state.name) {
     goTo('screen-onboard');
@@ -798,68 +824,14 @@ function init() {
   }
 }
 
-// ═══════════════════════════════════════
-// WAKELOCK - keep screen on while app is open
-// ═══════════════════════════════════════
-let wakeLock = null;
-
-async function requestWakeLock() {
-  try {
-    if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
-    }
-  } catch(e) {}
-}
-
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-}
-
-// Re-acquire on visibility change (WakeLock releases automatically when hidden)
-document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'hidden') {
-    // App minimized - lock and clear session
-    releaseWakeLock();
-    if (state.name && state.hasBiometric) {
-      sessionLocked = true;
-    }
-  } else {
-    // App visible again - re-acquire wakelock
-    await requestWakeLock();
-    // If locked, show login screen
-    if (sessionLocked) {
-      sessionLocked = false;
-      goTo('screen-login');
-    }
-  }
-});
-
-let sessionLocked = false;
 
 
 // ═══════════════════════════════════════
 // WAKELOCK & AUTO-LOCK
 // ═══════════════════════════════════════
-let wakeLock = null;
-let sessionLocked = false;
 
 
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-}
 
-document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'hidden') {
-    releaseWakeLock();
-    if (state.name && state.hasBiometric) sessionLocked = true;
-  } else {
-    await requestWakeLock();
-    if (sessionLocked) {
-      sessionLocked = false;
-      goTo('screen-login');
-    }
-  }
-});
 
 // ═══════════════════════════════════════
 // NAVIGATION
@@ -1425,36 +1397,7 @@ function resetApp() {
   }
 }
 
-// ═══════════════════════════════════════
-// WAKELOCK - keep screen on while app is open
-// ═══════════════════════════════════════
-let wakeLock = null;
 
-
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release(); wakeLock = null; }
-}
-
-// Re-acquire on visibility change (WakeLock releases automatically when hidden)
-document.addEventListener('visibilitychange', async () => {
-  if (document.visibilityState === 'hidden') {
-    // App minimized - lock and clear session
-    releaseWakeLock();
-    if (state.name && state.hasBiometric) {
-      sessionLocked = true;
-    }
-  } else {
-    // App visible again - re-acquire wakelock
-    await requestWakeLock();
-    // If locked, show login screen
-    if (sessionLocked) {
-      sessionLocked = false;
-      goTo('screen-login');
-    }
-  }
-});
-
-let sessionLocked = false;
 
 // ═══════════════════════════════════════
 // NAVIGATION HOOK
