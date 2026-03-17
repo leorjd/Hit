@@ -817,15 +817,34 @@ function loadState() {
 // ═══════════════════════════════════════
 let userId = null;
 
+async function generateUserIdFromCredential(credentialId) {
+  // Generate a stable userId from the biometric credentialId
+  const buffer = new Uint8Array(credentialId);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return 'hit_' + hashHex.substring(0, 32);
+}
+
 async function initUserId() {
   try {
+    // Try to get from localStorage first (for performance)
     const stored = localStorage.getItem('hit_user_id');
     if (stored) {
       userId = stored;
-    } else {
-      userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('hit_user_id', userId);
+      return;
     }
+    
+    // If user has biometric registered, derive userId from credentialId
+    if (state.credentialId && state.credentialId.length > 0) {
+      userId = await generateUserIdFromCredential(state.credentialId);
+      localStorage.setItem('hit_user_id', userId);
+      return;
+    }
+    
+    // Fallback: generate random (for users without biometric)
+    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('hit_user_id', userId);
   } catch(e) {
     userId = 'user_' + Date.now();
   }
@@ -1013,6 +1032,12 @@ async function registerBiometric() {
     state.hasBiometric = true;
     state.credentialId = Array.from(new Uint8Array(credential.rawId));
     saveState();
+    
+    // Generate userId from credentialId and sync to D1
+    userId = await generateUserIdFromCredential(state.credentialId);
+    localStorage.setItem('hit_user_id', userId);
+    await syncUserToD1();
+    
     showToast('¡Huella registrada!', 'Ya puedes entrar con tu huella cada día 🔐');
     setTimeout(() => { loadHome(); goTo('screen-home'); }, 1200);
   } catch(e) {
@@ -1031,6 +1056,14 @@ async function authenticateBiometric() {
         timeout: 60000,
       }
     });
+    
+    // Regenerate userId from credentialId and load data from D1
+    if (state.credentialId) {
+      userId = await generateUserIdFromCredential(state.credentialId);
+      localStorage.setItem('hit_user_id', userId);
+      await loadUserFromD1();
+    }
+    
     loadHome();
     if (workoutProgress) {
       showExercise(currentExIndex);
