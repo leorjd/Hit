@@ -812,6 +812,90 @@ function loadState() {
   } catch(e){}
 }
 
+// ═══════════════════════════════════════
+// D1 DATABASE SYNC
+// ═══════════════════════════════════════
+let userId = null;
+
+async function initUserId() {
+  try {
+    const stored = localStorage.getItem('hit_user_id');
+    if (stored) {
+      userId = stored;
+    } else {
+      userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('hit_user_id', userId);
+    }
+  } catch(e) {
+    userId = 'user_' + Date.now();
+  }
+}
+
+async function syncUserToD1() {
+  if (!userId || !state.name || !state.weight) return;
+  
+  try {
+    await fetch('/api/workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'saveUser',
+        userId: userId,
+        name: state.name,
+        weight: state.weight
+      })
+    });
+  } catch(e) {
+    console.log('Sync user failed:', e);
+  }
+}
+
+async function syncWorkoutToD1(kcal, exercises) {
+  if (!userId) return;
+  
+  try {
+    const response = await fetch('/api/workout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'saveWorkout',
+        userId: userId,
+        kcal: kcal,
+        date: new Date().toISOString(),
+        exercises: exercises
+      })
+    });
+    
+    const data = await response.json();
+    if (data.success && data.streak !== undefined) {
+      state.streak = data.streak;
+      saveState();
+    }
+  } catch(e) {
+    console.log('Sync workout failed:', e);
+  }
+}
+
+async function loadUserFromD1() {
+  if (!userId) return;
+  
+  try {
+    const response = await fetch(`/api/workout?userId=${userId}`);
+    if (response.ok) {
+      const data = await response.json();
+      state.name = data.name || state.name;
+      state.weight = data.weight || state.weight;
+      state.streak = data.streak || state.streak;
+      state.lastWorkoutDate = data.lastWorkoutDate || state.lastWorkoutDate;
+      state.totalWorkouts = data.totalWorkouts || state.totalWorkouts;
+      state.totalKcal = data.totalKcal || state.totalKcal;
+      state.history = data.history || state.history;
+      saveState();
+    }
+  } catch(e) {
+    console.log('Load from D1 failed:', e);
+  }
+}
 
 // ═══════════════════════════════════════
 // WAKELOCK & SESSION LOCK
@@ -844,9 +928,11 @@ document.addEventListener('visibilitychange', async () => {
 // ═══════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════
-function init() {
+async function init() {
   requestWakeLock();
+  await initUserId();
   loadState();
+  await loadUserFromD1();
 
   // Check for interrupted workout
   try {
@@ -1418,6 +1504,9 @@ function finishWorkout() {
     </div>
   `).join('');
 
+  // Sync to D1
+  syncWorkoutToD1(workoutKcal, currentWorkout.map(ex => ex.name));
+
   goTo('screen-summary');
   launchConfetti();
 }
@@ -1489,6 +1578,7 @@ function saveProfile() {
   state.name = name;
   state.weight = weight;
   saveState();
+  syncUserToD1();
   loadProfile();
   showToast('¡Guardado!', 'Tu perfil fue actualizado');
 }
