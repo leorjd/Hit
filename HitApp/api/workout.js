@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { sql } from '@vercel/postgres';
 
 // Rate limiting: 2 requests per minute per IP
 const rateLimitMap = new Map();
@@ -45,8 +45,6 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: 'Demasiadas solicitudes. Espera un momento.' });
   }
 
-  const sql = neon(process.env.DATABASE_URL);
-
   try {
     // GET: Obtener datos del usuario
     if (req.method === 'GET') {
@@ -58,13 +56,13 @@ export default async function handler(req, res) {
 
       const result = await sql`SELECT * FROM users WHERE id = ${userId}`;
 
-      if (result.length === 0) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'User not found' });
       }
 
       return res.status(200).json({
-        ...result[0],
-        history: result[0].history || []
+        ...result.rows[0],
+        history: result.rows[0].history || []
       });
     }
 
@@ -74,11 +72,11 @@ export default async function handler(req, res) {
 
       // Si viene "action", es operación de base de datos
       if (body.action === 'saveUser') {
-        return await saveUser(sql, body, res);
+        return await saveUser(body, res);
       }
 
       if (body.action === 'saveWorkout') {
-        return await saveWorkout(sql, body, res);
+        return await saveWorkout(body, res);
       }
 
       // Si viene "prompt", es generación de workout
@@ -122,7 +120,7 @@ async function generateWorkout(prompt, res) {
 }
 
 // Guardar o actualizar usuario
-async function saveUser(sql, data, res) {
+async function saveUser(data, res) {
   const { userId, name, weight } = data;
 
   if (!userId || !name || !weight) {
@@ -133,7 +131,7 @@ async function saveUser(sql, data, res) {
     // Verificar si el usuario existe
     const existing = await sql`SELECT id FROM users WHERE id = ${userId}`;
 
-    if (existing.length > 0) {
+    if (existing.rows.length > 0) {
       // Actualizar
       await sql`
         UPDATE users 
@@ -155,7 +153,7 @@ async function saveUser(sql, data, res) {
 }
 
 // Guardar workout completado
-async function saveWorkout(sql, data, res) {
+async function saveWorkout(data, res) {
   const { userId, kcal, date, exercises } = data;
 
   if (!userId || !kcal || !date) {
@@ -165,11 +163,11 @@ async function saveWorkout(sql, data, res) {
   try {
     const userResult = await sql`SELECT * FROM users WHERE id = ${userId}`;
 
-    if (userResult.length === 0) {
+    if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const user = userResult[0];
+    const user = userResult.rows[0];
 
     // Calcular nueva racha
     const today = new Date(date).toISOString().split('T')[0];
