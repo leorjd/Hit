@@ -1570,7 +1570,10 @@ function showExercise(index) {
   goTo('screen-exercise');
 
   // Start auto-run: 10sec prep then first serie
-  currentSerie = 1;
+  // Solo resetear a serie 1 si NO estamos recuperando un workout pausado
+  if (!workoutProgress) {
+    currentSerie = 1;
+  }
   autoSide = 'left';
   startPhase('prep');
 }
