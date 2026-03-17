@@ -14,13 +14,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { mode } = req.body;
+    const { prompt } = req.body;
 
-    if (!mode || (mode !== 'ligero' && mode !== 'intenso')) {
-      return res.status(400).json({ error: 'Invalid mode' });
+    if (!prompt) {
+      return res.status(400).json({ error: 'Missing prompt' });
     }
-
-    const exerciseCount = mode === 'ligero' ? 8 : 15;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -35,26 +33,7 @@ export default async function handler(req, res) {
         messages: [
           {
             role: 'user',
-            content: `Genera un workout de ${exerciseCount} ejercicios en casa. Responde SOLO con JSON válido, sin texto extra, sin markdown:
-
-{
-  "exercises": [
-    {
-      "name": "nombre del ejercicio",
-      "reps": "12-15 reps" o "30-45 seg",
-      "rest": "15 seg" o "30 seg",
-      "steps": ["paso 1", "paso 2", "paso 3"],
-      "kcal": número entre 8-15
-    }
-  ]
-}
-
-Reglas:
-- Exactamente ${exerciseCount} ejercicios
-- Variedad: cardio, fuerza, core
-- Sin equipo especial
-- steps: máximo 3 pasos por ejercicio
-- kcal: número entero entre 8-15`
+            content: prompt
           }
         ]
       })
@@ -70,13 +49,7 @@ Reglas:
     }
 
     const data = await response.json();
-    const content = data.content[0].text;
-    
-    // Limpiar posibles markdown backticks
-    const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-    const workout = JSON.parse(cleanContent);
-
-    return res.status(200).json(workout);
+    return res.status(200).json(data);
 
   } catch (error) {
     console.error('Error:', error);
