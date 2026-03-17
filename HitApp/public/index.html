@@ -562,14 +562,41 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
       </div>
     </div>
 
-    <!-- Next button (temp, will remove later) -->
-    <button class="btn-outline" onclick="nextExercise()" id="ex-next-btn">SIGUIENTE →</button>
+    <!-- Pause button -->
+    <button class="btn-outline" onclick="togglePause()" id="ex-pause-btn" style="margin-bottom:8px;">⏸ PAUSAR</button>
+
+    <!-- Terminar button (hidden until last exercise completes) -->
+    <button class="btn-primary" onclick="finishWorkout()" id="ex-finish-btn" style="display:none;">¡TERMINAR! 🏆</button>
 
   </div>
 </div>
 
 <!-- ══════════════════════════════════════
-     SCREEN 7: REST
+     SCREEN 7: TRANSITION PREVIEW
+══════════════════════════════════════ -->
+<div id="screen-transition" class="screen">
+  <div class="rest-bg"></div>
+  <div class="safe-top"></div>
+  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:20px;">
+    <div class="label" style="margin-bottom:4px;">PRÓXIMO EJERCICIO</div>
+    <div class="display-md accent" id="trans-name" style="margin-bottom:16px;">SENTADILLA</div>
+    <div id="trans-gif" style="width:100%;max-width:300px;border-radius:var(--radius-lg);overflow:hidden;min-height:160px;background:#111;display:flex;align-items:center;justify-content:center;margin-bottom:20px;"></div>
+    <div class="label" style="margin-bottom:12px;">PREPÁRATE EN</div>
+    <div class="timer-ring" style="margin-bottom:12px;">
+      <svg width="110" height="110" viewBox="0 0 140 140">
+        <circle class="timer-circle-bg" cx="70" cy="70" r="60"/>
+        <circle class="timer-circle-fill" id="trans-circle" cx="70" cy="70" r="60" stroke-dasharray="376.99" stroke-dashoffset="0"/>
+      </svg>
+      <div class="timer-text">
+        <div style="font-family:var(--font-display);font-size:38px;color:var(--hit-green);line-height:1;" id="trans-display">0:20</div>
+      </div>
+    </div>
+    <button class="btn-outline" style="max-width:260px;" onclick="skipTransition()">SALTAR →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SCREEN 8: REST
 ══════════════════════════════════════ -->
 <div id="screen-rest" class="screen">
   <div class="rest-bg"></div>
@@ -767,6 +794,10 @@ let autoTotal = 0;
 let currentSerie = 0;
 let autoPhase = 'prep'; // prep | exercise | rest | transition
 let autoSide = 'left'; // left | right (for side exercises)
+let isPaused = false;
+
+// Workout progress (for persistence)
+let workoutProgress = null;
 
 // ═══════════════════════════════════════
 // PERSISTENCE
@@ -816,6 +847,22 @@ document.addEventListener('visibilitychange', async () => {
 function init() {
   requestWakeLock();
   loadState();
+
+  // Check for interrupted workout
+  try {
+    const saved = localStorage.getItem('hit_workout_progress');
+    if (saved) {
+      const p = JSON.parse(saved);
+      currentWorkout = p.workout;
+      currentExIndex = p.exIndex;
+      currentSerie = p.serie || 1;
+      workoutKcal = p.kcal || 0;
+      workoutStartTime = p.startTime || Date.now();
+      selectedMode = p.mode || 'fast';
+      workoutProgress = p;
+    }
+  } catch(e) {}
+
   if (!state.name) {
     goTo('screen-onboard');
   } else if (state.hasBiometric) {
@@ -899,7 +946,11 @@ async function authenticateBiometric() {
       }
     });
     loadHome();
-    goTo('screen-home');
+    if (workoutProgress) {
+      showExercise(currentExIndex);
+    } else {
+      goTo('screen-home');
+    }
   } catch(e) {
     showToast('Autenticación fallida', 'Toca el ícono para intentar de nuevo');
   }
@@ -985,12 +1036,12 @@ async function generateWorkout() {
 
 DATOS DEL USUARIO:
 - Nivel: Intermedio
-- Modo: ${selectedMode === 'fast' ? 'LIGERO (8 ejercicios)' : 'INTENSO (15 ejercicios)'}
+- Modo: ${selectedMode === 'fast' ? 'LIGERO (8 ejercicios + estiramiento final)' : 'INTENSO (13 ejercicios + estiramiento final)'}
 - Equipamiento: cuerpo, mancuernas, caminadora doméstica
 - Objetivo: Mix de fuerza y cardio
 
 INSTRUCCIONES IMPORTANTES:
-- Genera EXACTAMENTE ${selectedMode === 'fast' ? 8 : 15} ejercicios
+- Genera EXACTAMENTE ${selectedMode === 'fast' ? 9 : 14} ejercicios (incluyendo estiramiento final)
 - Alterna intensidad: 2 ejercicios fuertes, 1 moderado para recuperar
 - 5 series por ejercicio (excepto caminadora 1 serie larga y estiramiento)
 - El estiramiento final debe tener duration_seconds: 120 (2 minutos)
@@ -1142,9 +1193,13 @@ function showExercise(index) {
     gifContainer.innerHTML = `<img src="${url}" style="width:100%;max-height:220px;object-fit:cover;border-radius:12px;" onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#3A3A3A;\'>💪</div>'"/>`;
   });
 
-  // Next button text
-  const nextBtn = document.getElementById('ex-next-btn');
-  nextBtn.textContent = index === total - 1 ? '¡TERMINAR! 🏆' : 'SIGUIENTE →';
+  // Hide finish button (shows only when last exercise completes)
+  document.getElementById('ex-finish-btn').style.display = 'none';
+  document.getElementById('ex-pause-btn').textContent = '⏸ PAUSAR';
+  isPaused = false;
+
+  // Save workout progress
+  saveWorkoutProgress();
 
   goTo('screen-exercise');
 
@@ -1173,15 +1228,29 @@ function startPhase(phase) {
     autoSeconds = 8;
     updateAutoDisplay('DESCANSA', '#fff', `Siguiente: Serie ${currentSerie} de ${ex.sets}`);
   } else if (phase === 'transition') {
-    autoTotal = 10;
-    autoSeconds = 10;
+    autoTotal = 20;
+    autoSeconds = 20;
     const next = currentWorkout[currentExIndex + 1];
-    updateAutoDisplay('DESCANSA', '#fff', next ? `Próximo: ${next.name}` : '¡Último ejercicio!');
+    // Show transition preview screen
+    if (next) {
+      document.getElementById('trans-name').textContent = next.name;
+      const transGif = document.getElementById('trans-gif');
+      transGif.innerHTML = '<div style="padding:20px;color:#3A3A3A;font-size:12px;">Cargando...</div>';
+      fetchGif(next.gif_search || next.name).then(url => {
+        transGif.innerHTML = `<img src="${url}" style="width:100%;max-height:200px;object-fit:cover;" onerror="this.parentElement.innerHTML='<div style=\'padding:20px;text-align:center;color:#3A3A3A;\'>💪</div>'"/>`;
+      });
+      document.getElementById('trans-display').textContent = '0:20';
+      document.getElementById('trans-circle').style.strokeDashoffset = '0';
+      goTo('screen-transition');
+    }
+    updateAutoDisplay('PREPÁRATE', '#fff', next ? `Próximo: ${next.name}` : '¡Último ejercicio!');
   }
 
   autoInterval = setInterval(() => {
+    if (isPaused) return;
     autoSeconds--;
     updateTimerRing();
+    if (autoPhase === 'transition') updateTransitionDisplay();
     if (autoSeconds <= 0) {
       clearInterval(autoInterval);
       nextPhase();
@@ -1209,7 +1278,9 @@ function nextPhase() {
         startPhase('rest'); // 8s rest, then straight to exercise (no prep)
       } else {
         if (currentExIndex >= currentWorkout.length - 1) {
-          finishWorkout();
+          // Show TERMINAR button — user must tap to confirm finish
+          document.getElementById('ex-finish-btn').style.display = 'flex';
+          document.getElementById('ex-pause-btn').style.display = 'none';
         } else {
           startPhase('transition'); // 10s before next exercise
         }
@@ -1240,16 +1311,44 @@ function updateTimerRing() {
   document.getElementById('timer-circle').style.strokeDashoffset = circumference * (1 - progress);
 }
 
-function nextExercise() {
+function togglePause() {
+  isPaused = !isPaused;
+  const btn = document.getElementById('ex-pause-btn');
+  btn.textContent = isPaused ? '▶ REANUDAR' : '⏸ PAUSAR';
+}
+
+function skipTransition() {
   clearInterval(autoInterval);
-  // Accumulate remaining kcal
-  const ex = currentWorkout[currentExIndex];
-  workoutKcal += (ex.kcal_per_set || 8) * ex.sets;
-  if (currentExIndex >= currentWorkout.length - 1) {
-    finishWorkout();
-  } else {
-    currentExIndex++;
-    showExercise(currentExIndex);
+  currentExIndex++;
+  showExercise(currentExIndex);
+}
+
+function saveWorkoutProgress() {
+  workoutProgress = {
+    workout: currentWorkout,
+    exIndex: currentExIndex,
+    serie: currentSerie,
+    kcal: workoutKcal,
+    startTime: workoutStartTime,
+    mode: selectedMode
+  };
+  try { localStorage.setItem('hit_workout_progress', JSON.stringify(workoutProgress)); } catch(e) {}
+}
+
+function clearWorkoutProgress() {
+  workoutProgress = null;
+  try { localStorage.removeItem('hit_workout_progress'); } catch(e) {}
+}
+
+function updateTransitionDisplay() {
+  const min = Math.floor(autoSeconds / 60);
+  const sec = autoSeconds % 60;
+  const el = document.getElementById('trans-display');
+  if (el) el.textContent = `${min}:${sec.toString().padStart(2,'0')}`;
+  const circle = document.getElementById('trans-circle');
+  if (circle) {
+    const circumference = 376.99;
+    circle.style.strokeDashoffset = circumference * (1 - autoSeconds / autoTotal);
   }
 }
 
@@ -1257,8 +1356,9 @@ function nextExercise() {
 // FINISH WORKOUT
 // ═══════════════════════════════════════
 function finishWorkout() {
-  stopTimer();
-  clearInterval(restInterval);
+  clearInterval(autoInterval);
+  clearWorkoutProgress();
+  document.getElementById('ex-pause-btn').style.display = 'flex';
 
   const elapsed = Math.round((Date.now() - workoutStartTime) / 1000);
   const min = Math.floor(elapsed / 60);
