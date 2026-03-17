@@ -803,7 +803,6 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 // ═══════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════
-const STORAGE_KEY = 'hit_app_v1';
 let state = {
   name: '', weight: 65, hasBiometric: false,
   streak: 0, lastWorkoutDate: null,
@@ -832,15 +831,7 @@ let workoutProgress = null;
 // ═══════════════════════════════════════
 // PERSISTENCE
 // ═══════════════════════════════════════
-function saveState() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
-}
-function loadState() {
-  try {
-    const s = localStorage.getItem(STORAGE_KEY);
-    if (s) state = {...state, ...JSON.parse(s)};
-  } catch(e){}
-}
+// LocalStorage eliminado - todo se guarda en Supabase
 
 // ═══════════════════════════════════════
 // SUPABASE
@@ -885,7 +876,6 @@ async function loadUserFromSupabase() {
     state.totalKcal = data.total_kcal || 0;
     state.history = data.history || [];
     state.hasBiometric = true;
-    saveState();
     return true;
   } catch(e) {
     console.log('Load user failed:', e);
@@ -932,7 +922,6 @@ async function createUserInSupabase(name, weight) {
     state.name = name;
     state.weight = weight;
     state.hasBiometric = true;
-    saveState();
     return true;
   } catch(e) {
     console.log('Create user failed:', e);
@@ -991,7 +980,6 @@ async function updateWorkoutInSupabase(workoutData) {
       state.streak = newStreak;
       state.lastWorkoutDate = new Date().toISOString();
       state.history = newHistory;
-      saveState();
     }
   } catch(e) {
     console.log('Update workout failed:', e);
@@ -1031,9 +1019,8 @@ document.addEventListener('visibilitychange', async () => {
 // ═══════════════════════════════════════
 async function init() {
   requestWakeLock();
-  loadState();
-
-  // Check for interrupted workout
+  
+  // Check for interrupted workout (keep in localStorage for session recovery)
   try {
     const saved = localStorage.getItem('hit_workout_progress');
     if (saved) {
@@ -1048,15 +1035,24 @@ async function init() {
     }
   } catch(e) {}
 
-  if (!state.name) {
-    goTo('screen-onboard');
-  } else if (state.hasBiometric) {
-    document.getElementById('login-name').textContent = state.name.toUpperCase();
-    goTo('screen-login');
-  } else {
-    loadHome();
-    goTo('screen-home');
+  // Try to load user from Supabase if has biometric credential
+  try {
+    const credData = localStorage.getItem('hit_credential_id');
+    if (credData) {
+      credentialId = credData;
+      const loaded = await loadUserFromSupabase();
+      if (loaded) {
+        document.getElementById('login-name').textContent = state.name.toUpperCase();
+        goTo('screen-login');
+        return;
+      }
+    }
+  } catch(e) {
+    console.log('Failed to load from Supabase:', e);
   }
+
+  // No user data - go to onboarding
+  goTo('screen-onboard');
 }
 
 
@@ -1086,7 +1082,6 @@ function completeOnboarding() {
   if (!weight || weight < 20 || weight > 300) { showToast('Peso inválido', 'Ingresa tu peso en kg'); return; }
   state.name = name;
   state.weight = weight;
-  saveState();
   goTo('screen-biometric');
 }
 
@@ -1111,9 +1106,9 @@ async function registerBiometric() {
     });
     
     credentialId = arrayBufferToBase64(credential.rawId);
+    localStorage.setItem('hit_credential_id', credentialId);
     state.hasBiometric = true;
     state.credentialId = Array.from(new Uint8Array(credential.rawId));
-    saveState();
     
     const created = await createUserInSupabase(state.name, state.weight);
     
@@ -1141,6 +1136,7 @@ async function authenticateBiometric() {
     });
     
     credentialId = arrayBufferToBase64(assertion.rawId);
+    localStorage.setItem('hit_credential_id', credentialId);
     await loadUserFromSupabase();
     
     loadHome();
@@ -1157,6 +1153,11 @@ async function authenticateBiometric() {
 async function skipBiometric() {
   // Generar ID temporal y guardar en Supabase
   await createUserInSupabase(state.name, state.weight);
+  
+  // Guardar credentialId para próximos ingresos
+  if (credentialId) {
+    localStorage.setItem('hit_credential_id', credentialId);
+  }
   
   loadHome();
   goTo('screen-home');
@@ -1201,7 +1202,6 @@ function updateStreak() {
   const yesterday = new Date(Date.now() - 86400000).toDateString();
   if (last !== today && last !== yesterday) {
     state.streak = 0;
-    saveState();
   }
 }
 
@@ -1613,7 +1613,6 @@ function finishWorkout() {
     }))
   });
   if (state.history.length > 30) state.history.shift();
-  saveState();
 
   // Summary screen
   document.getElementById('sum-time').textContent = timeStr;
@@ -1754,20 +1753,39 @@ function loadProfile() {
   document.getElementById('profile-weight-input').value = state.weight;
 }
 
-function saveProfile() {
+async function saveProfile() {
   const name = document.getElementById('profile-name-input').value.trim();
   const weight = parseFloat(document.getElementById('profile-weight-input').value);
   if (!name || !weight) { showToast('Datos incompletos', 'Revisa nombre y peso'); return; }
-  state.name = name;
-  state.weight = weight;
-  saveState();
-  loadProfile();
-  showToast('¡Guardado!', 'Tu perfil fue actualizado');
+  
+  if (!credentialId) {
+    showToast('Error', 'No se pudo actualizar el perfil');
+    return;
+  }
+  
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .update({ name, weight })
+      .eq('credential_id', credentialId);
+    
+    if (error) {
+      showToast('Error', 'No se pudo guardar en la nube');
+      return;
+    }
+    
+    state.name = name;
+    state.weight = weight;
+    loadProfile();
+    showToast('¡Guardado!', 'Tu perfil fue actualizado');
+  } catch(e) {
+    showToast('Error', 'Verifica tu conexión');
+  }
 }
 
 function resetApp() {
-  if (confirm('¿Segura? Esto borrará todo tu progreso y datos.')) {
-    localStorage.removeItem(STORAGE_KEY);
+  if (confirm('¿Segura? Esto borrará todo tu progreso y datos en la nube.')) {
+    // TODO: implementar borrado en Supabase
     location.reload();
   }
 }
