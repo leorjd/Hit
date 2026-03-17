@@ -940,7 +940,7 @@ async function createUserInSupabase(name, weight) {
   }
 }
 
-async function updateWorkoutInSupabase(kcal, exercises) {
+async function updateWorkoutInSupabase(workoutData) {
   if (!credentialId) return;
   
   try {
@@ -972,17 +972,13 @@ async function updateWorkoutInSupabase(kcal, exercises) {
       newStreak = 1;
     }
     
-    const newHistory = [...(user.history || []), {
-      date: new Date().toISOString(),
-      kcal: kcal,
-      exercises: exercises.length
-    }];
+    const newHistory = [...(user.history || []), workoutData];
     
     const { error } = await supabaseClient
       .from('users')
       .update({
         total_workouts: user.total_workouts + 1,
-        total_kcal: user.total_kcal + kcal,
+        total_kcal: user.total_kcal + workoutData.kcal,
         streak: newStreak,
         last_workout_date: new Date().toISOString(),
         history: newHistory
@@ -991,7 +987,7 @@ async function updateWorkoutInSupabase(kcal, exercises) {
     
     if (!error) {
       state.totalWorkouts = user.total_workouts + 1;
-      state.totalKcal = user.total_kcal + kcal;
+      state.totalKcal = user.total_kcal + workoutData.kcal;
       state.streak = newStreak;
       state.lastWorkoutDate = new Date().toISOString();
       state.history = newHistory;
@@ -1647,7 +1643,21 @@ function finishWorkout() {
   `).join('');
 
   // Sync to Supabase
-  updateWorkoutInSupabase(workoutKcal, currentWorkout.map(ex => ex.name));
+  const workoutData = {
+    date: `${days[now.getDay()]} ${now.getDate()}/${now.getMonth()+1}`,
+    mode: selectedMode,
+    time: timeStr,
+    exercises: currentWorkout.length,
+    kcal: workoutKcal,
+    timestamp: Date.now(),
+    exerciseList: currentWorkout.map(ex => ({
+      name: ex.name,
+      sets: ex.sets,
+      reps: ex.reps,
+      kcal: (ex.kcal_per_set || 8) * (ex.sets || 1)
+    }))
+  };
+  updateWorkoutInSupabase(workoutData);
 
   goTo('screen-summary');
   launchConfetti();
