@@ -454,81 +454,6 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
 </div>
 
 <!-- ══════════════════════════════════════
-     SCREEN 3: BIOMETRIC SETUP
-══════════════════════════════════════ -->
-<div id="screen-biometric" class="screen">
-  <div class="safe-top"></div>
-  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:60px;">
-
-    <div class="display-md" style="margin-bottom:8px;">ACCESO <span class="accent">SEGURO</span></div>
-    <div class="bar" style="margin:0 auto 20px;"></div>
-    <p class="caption" style="margin-bottom:48px;max-width:280px;line-height:1.7;">
-      Registra tu huella para proteger tu progreso y acceder rápido cada día.
-    </p>
-
-    <!-- Fingerprint icon -->
-    <div class="fp-icon" style="margin-bottom:40px;">
-      <svg width="100" height="100" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="48" stroke="#2a2a2a" stroke-width="1.5"/>
-        <circle cx="50" cy="50" r="38" stroke="#D6FF00" stroke-width="1" opacity=".3"/>
-        <path d="M50 25c-13.8 0-25 11.2-25 25" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 32c-9.9 0-18 8.1-18 18" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 39c-6.1 0-11 4.9-11 11v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 46c-2.2 0-4 1.8-4 4v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 25c13.8 0 25 11.2 25 25v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 32c9.9 0 18 8.1 18 18v8" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
-        <path d="M50 39c6.1 0 11 4.9 11 11v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
-        <circle cx="50" cy="50" r="4" fill="#D6FF00"/>
-      </svg>
-    </div>
-
-    <button class="btn-primary" style="max-width:280px;" onclick="registerBiometric()">REGISTRAR HUELLA</button>
-    <button class="btn-ghost" style="max-width:280px;margin-top:12px;" onclick="skipBiometric()">Ahora no, entrar sin huella</button>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
-     SCREEN 3: LOGIN (huella)
-══════════════════════════════════════ -->
-<div id="screen-login" class="screen">
-  <div class="safe-top"></div>
-  <div class="screen-body" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:80px;">
-
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:48px;">
-      <svg width="40" height="40" viewBox="0 0 48 48">
-        <rect width="48" height="48" rx="12" fill="#000" stroke="#2a2a2a" stroke-width="1"/>
-        <rect x="9" y="7" width="7" height="34" rx="3" fill="#1C1C1C"/>
-        <rect x="9" y="7" width="7" height="22" rx="3" fill="#D6FF00"/>
-        <rect x="32" y="7" width="7" height="34" rx="3" fill="#D6FF00"/>
-        <rect x="16" y="19" width="16" height="7" rx="3" fill="#D6FF00"/>
-      </svg>
-      <span style="font-family:var(--font-display);font-size:36px;color:var(--hit-green);letter-spacing:3px;">HIT</span>
-    </div>
-
-    <div class="display-md" style="margin-bottom:6px;">¡DE VUELTA, <span class="accent" id="login-name"></span>!</div>
-    <div class="bar" style="margin:0 auto 12px;"></div>
-    <p class="caption" style="margin-bottom:48px;">Usa tu huella para entrar</p>
-
-    <div class="fp-icon" onclick="authenticateBiometric()" style="cursor:pointer;margin-bottom:32px;">
-      <svg width="90" height="90" viewBox="0 0 100 100" fill="none">
-        <circle cx="50" cy="50" r="48" stroke="#2a2a2a" stroke-width="1.5"/>
-        <circle cx="50" cy="50" r="38" stroke="#D6FF00" stroke-width="1" opacity=".3"/>
-        <path d="M50 25c-13.8 0-25 11.2-25 25" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 32c-9.9 0-18 8.1-18 18" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 39c-6.1 0-11 4.9-11 11v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 46c-2.2 0-4 1.8-4 4v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 25c13.8 0 25 11.2 25 25v5" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round"/>
-        <path d="M50 32c9.9 0 18 8.1 18 18v8" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".7"/>
-        <path d="M50 39c6.1 0 11 4.9 11 11v12" stroke="#D6FF00" stroke-width="2.5" stroke-linecap="round" opacity=".5"/>
-        <circle cx="50" cy="50" r="4" fill="#D6FF00"/>
-      </svg>
-    </div>
-
-    <p class="caption">Toca la huella para autenticar</p>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════
      SCREEN 4: HOME
 ══════════════════════════════════════ -->
 <div id="screen-home" class="screen">
@@ -976,8 +901,6 @@ if (window.supabase) {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
-// let credentialId = null; // Ya no se usa con Supabase Auth
-
 // ═══════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════
@@ -993,80 +916,6 @@ function arrayBufferToBase64(buffer) {
 // ═══════════════════════════════════════
 // FUNCIONES BIOMÉTRICAS (YA NO SE USAN - OBSOLETAS CON SUPABASE AUTH)
 // ═══════════════════════════════════════
-/*
-async function loadUserFromSupabase() {
-  if (!credentialId) return false;
-  
-  try {
-    const { data, error } = await supabaseClient
-      .from('users')
-      .select('*')
-      .eq('credential_id', credentialId)
-      .single();
-    
-    if (error || !data) return false;
-    
-    state.name = data.name;
-    state.weight = data.weight;
-    state.streak = data.streak || 0;
-    state.lastWorkoutDate = data.last_workout_date;
-    state.totalWorkouts = data.total_workouts || 0;
-    state.totalKcal = data.total_kcal || 0;
-    state.history = data.history || [];
-    state.hasBiometric = true;
-    return true;
-  } catch(e) {
-    console.log('Load user failed:', e);
-    return false;
-  }
-}
-
-async function createUserInSupabase(name, weight) {
-  // Validar que supabaseClient esté inicializado
-  if (!supabaseClient) {
-    console.error('supabaseClient is null - CDN may not have loaded');
-    return false;
-  }
-  
-  // Generar ID temporal si no hay credentialId
-  if (!credentialId) {
-    credentialId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-  }
-  
-  console.log('Attempting insert with credentialId:', credentialId);
-  
-  try {
-    const { data, error } = await supabaseClient
-      .from('users')
-      .insert([{
-        credential_id: credentialId,
-        name: name,
-        weight: weight,
-        streak: 0,
-        total_workouts: 0,
-        total_kcal: 0,
-        history: []
-      }])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Create user error:', error);
-      return false;
-    }
-    
-    console.log('User created successfully:', data);
-    
-    state.name = name;
-    state.weight = weight;
-    state.hasBiometric = true;
-    return true;
-  } catch(e) {
-    console.log('Create user failed:', e);
-    return false;
-  }
-}
-*/
 
 async function updateWorkoutInSupabase(workoutData) {
   if (!state.userId) return;
@@ -1475,86 +1324,6 @@ function skipBiometricSetup() {
 function goToEmailLogin() {
   goTo('screen-login-email');
 }
-
-/*
-// ═══════════════════════════════════════
-// BIOMETRIC (YA NO SE USA)
-// ═══════════════════════════════════════
-async function registerBiometric() {
-  if (!window.PublicKeyCredential) {
-    showToast('No disponible', 'Tu navegador no soporta huella digital');
-    skipBiometric(); return;
-  }
-  try {
-    const credential = await navigator.credentials.create({
-      publicKey: {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        rp: { name: 'HIT App', id: location.hostname || 'localhost' },
-        user: { id: new TextEncoder().encode(state.name), name: state.name, displayName: state.name },
-        pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
-        authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required' },
-        timeout: 60000,
-      }
-    });
-    
-    credentialId = arrayBufferToBase64(credential.rawId);
-    localStorage.setItem('hit_credential_id', credentialId);
-    state.hasBiometric = true;
-    state.credentialId = Array.from(new Uint8Array(credential.rawId));
-    
-    const created = await createUserInSupabase(state.name, state.weight);
-    
-    if (created) {
-      showToast('¡Huella registrada!', 'Ya puedes entrar con tu huella cada día 🔐');
-    } else {
-      showToast('Guardado local', 'Los datos se guardan solo en tu dispositivo');
-    }
-    setTimeout(() => { loadHome(); goTo('screen-home'); }, 1200);
-  } catch(e) {
-    showToast('No se pudo registrar', 'Intentalo de nuevo o entra sin huella');
-  }
-}
-
-async function authenticateBiometric() {
-  if (!state.hasBiometric || !window.PublicKeyCredential) { skipBiometric(); return; }
-  try {
-    const assertion = await navigator.credentials.get({
-      publicKey: {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        allowCredentials: state.credentialId ? [{ type: 'public-key', id: new Uint8Array(state.credentialId) }] : [],
-        userVerification: 'required',
-        timeout: 60000,
-      }
-    });
-    
-    credentialId = arrayBufferToBase64(assertion.rawId);
-    localStorage.setItem('hit_credential_id', credentialId);
-    await loadUserFromSupabase();
-    
-    loadHome();
-    if (workoutProgress) {
-      showExercise(currentExIndex);
-    } else {
-      goTo('screen-home');
-    }
-  } catch(e) {
-    showToast('Autenticación fallida', 'Toca el ícono para intentar de nuevo');
-  }
-}
-
-async function skipBiometric() {
-  // Generar ID temporal y guardar en Supabase
-  await createUserInSupabase(state.name, state.weight);
-  
-  // Guardar credentialId para próximos ingresos
-  if (credentialId) {
-    localStorage.setItem('hit_credential_id', credentialId);
-  }
-  
-  loadHome();
-  goTo('screen-home');
-}
-*/
 
 // ═══════════════════════════════════════
 // HOME
