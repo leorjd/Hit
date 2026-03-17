@@ -988,13 +988,13 @@ function releaseWakeLock() {
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'hidden') {
     releaseWakeLock();
-    if (state.name && state.hasBiometric) sessionLocked = true;
+    const hasBiometric = localStorage.getItem('hit_biometric_registered');
+    if (state.name && hasBiometric) sessionLocked = true;
   } else {
     await requestWakeLock();
     if (sessionLocked) {
       sessionLocked = false;
-      document.getElementById('login-name').textContent = state.name.toUpperCase();
-      goTo('screen-login');
+      goTo('screen-biometric-lock');
     }
   }
 });
