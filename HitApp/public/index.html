@@ -412,8 +412,8 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="fire" style="font-size:20px;">🔥</span>
       <div>
-        <div style="font-family:var(--font-display);font-size:28px;color:var(--hit-green);line-height:1;" id="home-streak">0</div>
-        <div class="label">Racha</div>
+        <div style="font-family:var(--font-display);font-size:28px;color:var(--hit-green);line-height:1;" id="home-kcal">0</div>
+        <div class="label">KCAL TOT</div>
       </div>
     </div>
   </div>
@@ -698,6 +698,32 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
       <span class="nav-label">Perfil</span>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     WORKOUT DETAIL SCREEN
+══════════════════════════════════════ -->
+<div id="screen-workout-detail" class="screen">
+  <div class="safe-top"></div>
+  <div class="app-header">
+    <button onclick="goTo('screen-history')" style="background:none;border:none;color:var(--hit-gray-light);font-size:24px;cursor:pointer;padding:0;">←</button>
+    <div class="display-md">DETALLE</div>
+  </div>
+  <div class="screen-body" style="padding-top:16px;">
+    <div class="card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-family:var(--font-display);font-size:24px;" id="detail-mode">⚡ LIGERO</div>
+        <div class="badge-gray" id="detail-date">Mar 17/3</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);" id="detail-time">0:00</div><div class="label">Tiempo</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);" id="detail-exercises">0</div><div class="label">Ejercicios</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);" id="detail-kcal">0</div><div class="label">Kcal</div></div>
+      </div>
+    </div>
+    <div class="label" style="margin-bottom:12px;">Ejercicios realizados</div>
+    <div id="detail-exercise-list"></div>
   </div>
 </div>
 
@@ -1150,7 +1176,7 @@ function loadHome() {
   const now = new Date();
   document.getElementById('home-date').textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
   document.getElementById('home-name').textContent = state.name.split(' ')[0].toUpperCase();
-  document.getElementById('home-streak').textContent = state.streak;
+  document.getElementById('home-kcal').textContent = Math.round(state.totalKcal);
   document.getElementById('home-streak-2').textContent = state.streak;
   document.getElementById('home-total-workouts').textContent = state.totalWorkouts;
   document.getElementById('home-kcal-total').textContent = Math.round(state.totalKcal);
@@ -1582,7 +1608,13 @@ function finishWorkout() {
     time: timeStr,
     exercises: currentWorkout.length,
     kcal: workoutKcal,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    exerciseList: currentWorkout.map(ex => ({
+      name: ex.name,
+      sets: ex.sets,
+      reps: ex.reps,
+      kcal: (ex.kcal_per_set || 8) * (ex.sets || 1)
+    }))
   });
   if (state.history.length > 30) state.history.shift();
   saveState();
@@ -1655,19 +1687,50 @@ function loadHistory() {
     list.innerHTML = '<div class="card-dark"><p class="caption" style="text-align:center;">Aún no hay sesiones registradas.</p></div>';
     return;
   }
-  list.innerHTML = [...state.history].reverse().map(h => `
-    <div class="card">
+  list.innerHTML = [...state.history].reverse().map((h, idx) => `
+    <div class="card" onclick="showWorkoutDetail(${state.history.length - 1 - idx})" style="cursor:pointer;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <div style="font-family:var(--font-display);font-size:20px;">${h.mode === 'fast' ? '⚡ RÁPIDO' : '💪 COMPLETO'}</div>
-        <div class="badge-gray">${h.date}</div>
+        <div style="font-family:var(--font-display);font-size:20px;">💪 COMPLETO</div>
+        <div class="badge-gray">${h.date || 'Sin fecha'}</div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
-        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.time}</div><div class="label">Tiempo</div></div>
-        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.exercises}</div><div class="label">Ejercicios</div></div>
-        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${Math.round(h.kcal)}</div><div class="label">Kcal</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.time || 'N/A'}</div><div class="label">Tiempo</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${h.exercises || 0}</div><div class="label">Ejercicios</div></div>
+        <div><div style="font-family:var(--font-display);font-size:20px;color:var(--hit-green);">${Math.round(h.kcal || 0)}</div><div class="label">Kcal</div></div>
       </div>
     </div>
   `).join('');
+}
+
+function showWorkoutDetail(index) {
+  const workout = state.history[index];
+  if (!workout) return;
+  
+  document.getElementById('detail-mode').textContent = '💪 COMPLETO';
+  document.getElementById('detail-date').textContent = workout.date || 'Sin fecha';
+  document.getElementById('detail-time').textContent = workout.time || 'N/A';
+  document.getElementById('detail-exercises').textContent = workout.exercises || 0;
+  document.getElementById('detail-kcal').textContent = Math.round(workout.kcal || 0);
+  
+  const list = document.getElementById('detail-exercise-list');
+  if (workout.exerciseList && workout.exerciseList.length > 0) {
+    list.innerHTML = workout.exerciseList.map((ex, i) => `
+      <div class="card-dark" style="margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-family:var(--font-display);font-size:18px;color:var(--hit-green);min-width:28px;">${i+1}</span>
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:2px;">${ex.name}</div>
+            <div class="caption">${ex.sets ? ex.sets + ' series · ' : ''}${ex.reps || ''}</div>
+          </div>
+          <span style="color:var(--hit-green);font-size:13px;">~${Math.round(ex.kcal || 0)} kcal</span>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    list.innerHTML = '<div class="card-dark"><p class="caption" style="text-align:center;">No hay información detallada de ejercicios para esta sesión.</p></div>';
+  }
+  
+  goTo('screen-workout-detail');
 }
 
 // ═══════════════════════════════════════
