@@ -818,7 +818,12 @@ function loadState() {
 // ═══════════════════════════════════════
 const SUPABASE_URL = 'https://srwiqhlpuqqrjskdpgkm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2lxaGxwdXFxcmpza2RwZ2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzAxMzIsImV4cCI6MjA4OTM0NjEzMn0.RobRXqnv942XIvMEXcLpujqLCQtR5KHmxVoqe2QoC88';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabase = null;
+
+// Inicializar Supabase cuando el script cargue
+if (window.supabase) {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
 
 let credentialId = null;
 
