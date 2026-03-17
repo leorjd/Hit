@@ -1302,7 +1302,13 @@ async function unlockWithBiometric() {
       state.userId = session.user.id;
       
       loadHome();
-      goTo('screen-home');
+      
+      // Verificar si hay workout en progreso
+      if (workoutProgress && currentWorkout) {
+        showExercise(currentExIndex);
+      } else {
+        goTo('screen-home');
+      }
     } else {
       goTo('screen-login-email');
     }
