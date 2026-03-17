@@ -566,6 +566,9 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
     <!-- Pause button -->
     <button class="btn-outline" onclick="togglePause()" id="ex-pause-btn" style="margin-bottom:8px;">⏸ PAUSAR</button>
 
+    <!-- DEBUG: Skip to next exercise -->
+    <button class="btn-outline" onclick="skipToNext()" style="margin-bottom:8px;background:#333;border-color:#555;">⏭ SIGUIENTE (DEBUG)</button>
+
     <!-- Terminar button (hidden until last exercise completes) -->
     <button class="btn-primary" onclick="finishWorkout()" id="ex-finish-btn" style="display:none;">¡TERMINAR! 🏆</button>
 
@@ -1525,6 +1528,23 @@ function updateTransitionDisplay() {
   if (circle) {
     const circumference = 376.99;
     circle.style.strokeDashoffset = circumference * (1 - autoSeconds / autoTotal);
+  }
+}
+
+// ═══════════════════════════════════════
+// DEBUG: SKIP TO NEXT
+// ═══════════════════════════════════════
+function skipToNext() {
+  clearInterval(autoInterval);
+  currentSerie = 0;
+  currentExIndex++;
+  
+  if (currentExIndex >= currentWorkout.length) {
+    // Last exercise, finish
+    finishWorkout();
+  } else {
+    // Go to next exercise
+    showExercise(currentExIndex);
   }
 }
 
