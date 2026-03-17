@@ -840,7 +840,7 @@ async function loadUserFromSupabase() {
   if (!credentialId) return false;
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('users')
       .select('*')
       .eq('credential_id', credentialId)
@@ -865,10 +865,13 @@ async function loadUserFromSupabase() {
 }
 
 async function createUserInSupabase(name, weight) {
-  if (!credentialId) return false;
+  // Generar ID temporal si no hay credentialId
+  if (!credentialId) {
+    credentialId = 'temp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
   
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('users')
       .insert([{
         credential_id: credentialId,
@@ -902,7 +905,7 @@ async function updateWorkoutInSupabase(kcal, exercises) {
   if (!credentialId) return;
   
   try {
-    const { data: user } = await supabase
+    const { data: user } = await supabaseClient
       .from('users')
       .select('*')
       .eq('credential_id', credentialId)
@@ -936,7 +939,7 @@ async function updateWorkoutInSupabase(kcal, exercises) {
       exercises: exercises.length
     }];
     
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('users')
       .update({
         total_workouts: user.total_workouts + 1,
