@@ -10,6 +10,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <meta name="apple-mobile-web-app-title" content="HIT"/>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root {
   --hit-black:      #000000;
@@ -813,106 +814,144 @@ function loadState() {
 }
 
 // ═══════════════════════════════════════
-// D1 DATABASE SYNC
+// SUPABASE
 // ═══════════════════════════════════════
-let userId = null;
+const SUPABASE_URL = 'https://srwiqhlpuqqrjskdpgkm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyd2lxaGxwdXFxcmpza2RwZ2ttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM3NzAxMzIsImV4cCI6MjA4OTM0NjEzMn0.RobRXqnv942XIvMEXcLpujqLCQtR5KHmxVoqe2QoC88';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-async function generateUserIdFromCredential(credentialId) {
-  // Generate a stable userId from the biometric credentialId
-  const buffer = new Uint8Array(credentialId);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return 'hit_' + hashHex.substring(0, 32);
+let credentialId = null;
+
+function arrayBufferToBase64(buffer) {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
 }
 
-async function initUserId() {
+async function loadUserFromSupabase() {
+  if (!credentialId) return false;
+  
   try {
-    // Try to get from localStorage first (for performance)
-    const stored = localStorage.getItem('hit_user_id');
-    if (stored) {
-      userId = stored;
-      return;
-    }
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('credential_id', credentialId)
+      .single();
     
-    // If user has biometric registered, derive userId from credentialId
-    if (state.credentialId && state.credentialId.length > 0) {
-      userId = await generateUserIdFromCredential(state.credentialId);
-      localStorage.setItem('hit_user_id', userId);
-      return;
-    }
+    if (error || !data) return false;
     
-    // Fallback: generate random (for users without biometric)
-    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('hit_user_id', userId);
+    state.name = data.name;
+    state.weight = data.weight;
+    state.streak = data.streak || 0;
+    state.lastWorkoutDate = data.last_workout_date;
+    state.totalWorkouts = data.total_workouts || 0;
+    state.totalKcal = data.total_kcal || 0;
+    state.history = data.history || [];
+    state.hasBiometric = true;
+    saveState();
+    return true;
   } catch(e) {
-    userId = 'user_' + Date.now();
+    console.log('Load user failed:', e);
+    return false;
   }
 }
 
-async function syncUserToD1() {
-  if (!userId || !state.name || !state.weight) return;
+async function createUserInSupabase(name, weight) {
+  if (!credentialId) return false;
   
   try {
-    await fetch('/api/workout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'saveUser',
-        userId: userId,
-        name: state.name,
-        weight: state.weight
-      })
-    });
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{
+        credential_id: credentialId,
+        name: name,
+        weight: weight,
+        streak: 0,
+        total_workouts: 0,
+        total_kcal: 0,
+        history: []
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Create user error:', error);
+      return false;
+    }
+    
+    state.name = name;
+    state.weight = weight;
+    state.hasBiometric = true;
+    saveState();
+    return true;
   } catch(e) {
-    console.log('Sync user failed:', e);
+    console.log('Create user failed:', e);
+    return false;
   }
 }
 
-async function syncWorkoutToD1(kcal, exercises) {
-  if (!userId) return;
+async function updateWorkoutInSupabase(kcal, exercises) {
+  if (!credentialId) return;
   
   try {
-    const response = await fetch('/api/workout', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'saveWorkout',
-        userId: userId,
-        kcal: kcal,
-        date: new Date().toISOString(),
-        exercises: exercises
-      })
-    });
+    const { data: user } = await supabase
+      .from('users')
+      .select('*')
+      .eq('credential_id', credentialId)
+      .single();
     
-    const data = await response.json();
-    if (data.success && data.streak !== undefined) {
-      state.streak = data.streak;
+    if (!user) return;
+    
+    const today = new Date().toISOString().split('T')[0];
+    const lastDate = user.last_workout_date ? user.last_workout_date.split('T')[0] : null;
+    
+    let newStreak = user.streak || 0;
+    if (lastDate) {
+      const lastD = new Date(lastDate);
+      const todayD = new Date(today);
+      const diffDays = Math.floor((todayD - lastD) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 0) {
+        newStreak = user.streak;
+      } else if (diffDays === 1) {
+        newStreak = user.streak + 1;
+      } else {
+        newStreak = 1;
+      }
+    } else {
+      newStreak = 1;
+    }
+    
+    const newHistory = [...(user.history || []), {
+      date: new Date().toISOString(),
+      kcal: kcal,
+      exercises: exercises.length
+    }];
+    
+    const { error } = await supabase
+      .from('users')
+      .update({
+        total_workouts: user.total_workouts + 1,
+        total_kcal: user.total_kcal + kcal,
+        streak: newStreak,
+        last_workout_date: new Date().toISOString(),
+        history: newHistory
+      })
+      .eq('credential_id', credentialId);
+    
+    if (!error) {
+      state.totalWorkouts = user.total_workouts + 1;
+      state.totalKcal = user.total_kcal + kcal;
+      state.streak = newStreak;
+      state.lastWorkoutDate = new Date().toISOString();
+      state.history = newHistory;
       saveState();
     }
   } catch(e) {
-    console.log('Sync workout failed:', e);
-  }
-}
-
-async function loadUserFromD1() {
-  if (!userId) return;
-  
-  try {
-    const response = await fetch(`/api/workout?userId=${userId}`);
-    if (response.ok) {
-      const data = await response.json();
-      state.name = data.name || state.name;
-      state.weight = data.weight || state.weight;
-      state.streak = data.streak || state.streak;
-      state.lastWorkoutDate = data.lastWorkoutDate || state.lastWorkoutDate;
-      state.totalWorkouts = data.totalWorkouts || state.totalWorkouts;
-      state.totalKcal = data.totalKcal || state.totalKcal;
-      state.history = data.history || state.history;
-      saveState();
-    }
-  } catch(e) {
-    console.log('Load from D1 failed:', e);
+    console.log('Update workout failed:', e);
   }
 }
 
@@ -949,9 +988,7 @@ document.addEventListener('visibilitychange', async () => {
 // ═══════════════════════════════════════
 async function init() {
   requestWakeLock();
-  await initUserId();
   loadState();
-  await loadUserFromD1();
 
   // Check for interrupted workout
   try {
@@ -1029,16 +1066,19 @@ async function registerBiometric() {
         timeout: 60000,
       }
     });
+    
+    credentialId = arrayBufferToBase64(credential.rawId);
     state.hasBiometric = true;
     state.credentialId = Array.from(new Uint8Array(credential.rawId));
     saveState();
     
-    // Generate userId from credentialId and sync to D1
-    userId = await generateUserIdFromCredential(state.credentialId);
-    localStorage.setItem('hit_user_id', userId);
-    await syncUserToD1();
+    const created = await createUserInSupabase(state.name, state.weight);
     
-    showToast('¡Huella registrada!', 'Ya puedes entrar con tu huella cada día 🔐');
+    if (created) {
+      showToast('¡Huella registrada!', 'Ya puedes entrar con tu huella cada día 🔐');
+    } else {
+      showToast('Guardado local', 'Los datos se guardan solo en tu dispositivo');
+    }
     setTimeout(() => { loadHome(); goTo('screen-home'); }, 1200);
   } catch(e) {
     showToast('No se pudo registrar', 'Intentalo de nuevo o entra sin huella');
@@ -1048,7 +1088,7 @@ async function registerBiometric() {
 async function authenticateBiometric() {
   if (!state.hasBiometric || !window.PublicKeyCredential) { skipBiometric(); return; }
   try {
-    await navigator.credentials.get({
+    const assertion = await navigator.credentials.get({
       publicKey: {
         challenge: crypto.getRandomValues(new Uint8Array(32)),
         allowCredentials: state.credentialId ? [{ type: 'public-key', id: new Uint8Array(state.credentialId) }] : [],
@@ -1057,12 +1097,8 @@ async function authenticateBiometric() {
       }
     });
     
-    // Regenerate userId from credentialId and load data from D1
-    if (state.credentialId) {
-      userId = await generateUserIdFromCredential(state.credentialId);
-      localStorage.setItem('hit_user_id', userId);
-      await loadUserFromD1();
-    }
+    credentialId = arrayBufferToBase64(assertion.rawId);
+    await loadUserFromSupabase();
     
     loadHome();
     if (workoutProgress) {
@@ -1537,8 +1573,8 @@ function finishWorkout() {
     </div>
   `).join('');
 
-  // Sync to D1
-  syncWorkoutToD1(workoutKcal, currentWorkout.map(ex => ex.name));
+  // Sync to Supabase
+  updateWorkoutInSupabase(workoutKcal, currentWorkout.map(ex => ex.name));
 
   goTo('screen-summary');
   launchConfetti();
@@ -1611,7 +1647,6 @@ function saveProfile() {
   state.name = name;
   state.weight = weight;
   saveState();
-  syncUserToD1();
   loadProfile();
   showToast('¡Guardado!', 'Tu perfil fue actualizado');
 }
