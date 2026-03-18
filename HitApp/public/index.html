@@ -1564,16 +1564,17 @@ function showExercise(index) {
   document.getElementById('ex-pause-btn').textContent = '⏸ PAUSAR';
   isPaused = false;
 
+  // Reset serie counter BEFORE saving progress
+  if (!workoutProgress) {
+    currentSerie = 1;
+  }
+
   // Save workout progress
   saveWorkoutProgress();
 
   goTo('screen-exercise');
 
   // Start auto-run: 10sec prep then first serie
-  // Solo resetear a serie 1 si NO estamos recuperando un workout pausado
-  if (!workoutProgress) {
-    currentSerie = 1;
-  }
   autoSide = 'left';
   startPhase('prep');
 }
@@ -1642,8 +1643,8 @@ function nextPhase() {
     } else {
       workoutKcal += (ex.kcal_per_set || 8);
       if (currentSerie < ex.sets) {
-        currentSerie++;
         autoSide = 'left';
+        currentSerie++; // Increment BEFORE starting rest/next serie
         startPhase('rest'); // 8s rest, then straight to exercise (no prep)
       } else {
         if (currentExIndex >= currentWorkout.length - 1) {
@@ -1689,6 +1690,7 @@ function togglePause() {
 function skipTransition() {
   clearInterval(autoInterval);
   currentExIndex++;
+  currentSerie = 1; // Reset series counter for new exercise
   showExercise(currentExIndex);
 }
 
