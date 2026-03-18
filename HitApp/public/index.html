@@ -1564,8 +1564,10 @@ function showExercise(index) {
   document.getElementById('ex-pause-btn').textContent = '⏸ PAUSAR';
   isPaused = false;
 
-  // Reset serie counter BEFORE saving progress
-  if (!workoutProgress) {
+  // ALWAYS reset serie counter when showing a new exercise
+  // (unless we're resuming the EXACT same exercise from a pause)
+  const resumingSameExercise = workoutProgress && workoutProgress.exIndex === index;
+  if (!resumingSameExercise) {
     currentSerie = 1;
   }
 
