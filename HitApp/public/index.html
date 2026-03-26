@@ -496,28 +496,9 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
       </div>
     </div>
 
-    <!-- Mode selector -->
-    <div class="label" style="margin-bottom:12px;">Elige tu modo de hoy</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:28px;">
-      <div class="mode-card selected" id="mode-fast" onclick="selectMode('fast')">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--font-display);font-size:26px;color:var(--hit-green);">⚡ LIGERO</div>
-          <div class="badge">8 EJERCICIOS</div>
-        </div>
-        <p class="caption">Fuerza y cardio moderado. Ideal para días ocupados.</p>
-      </div>
-      <div class="mode-card" id="mode-full" onclick="selectMode('full')">
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <div style="font-family:var(--font-display);font-size:26px;">🔥 INTENSO</div>
-          <div class="badge-gray">13 EJERCICIOS</div>
-        </div>
-        <p class="caption">Fuerza máxima, cardio y caminadora. Sin límites.</p>
-      </div>
-    </div>
-
     <!-- CTA -->
-    <button class="btn-primary" onclick="generateWorkout()" id="start-btn">
-      <span>GENERAR RUTINA</span>
+    <button class="btn-primary" onclick="generateWorkout()" id="start-btn" style="margin-bottom:28px;">
+      <span>⚡ GENERAR RUTINA DE HOY</span>
     </button>
 
     <div class="divider"></div>
@@ -1403,42 +1384,68 @@ async function generateWorkout() {
   }, 1800);
 
   const dayNames = ['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
-  const today = dayNames[new Date().getDay()];
-  const prompt = `Eres un entrenador personal experto. Genera una rutina de ejercicio en casa para hoy ${today}.
+  const dayIndex = new Date().getDay();
+  const today = dayNames[dayIndex];
+
+  // Plan semanal fijo (0=dom, 1=lun, ..., 6=sab)
+  const weekPlan = {
+    0: { focus: 'DESCANSO ACTIVO / MOVILIDAD', muscles: 'Cuerpo completo (estiramientos y movilidad)' },
+    1: { focus: 'PIERNAS Y GLÚTEOS', muscles: 'Cuádriceps, femoral, glúteos, pantorrillas' },
+    2: { focus: 'PECHO Y TRÍCEPS', muscles: 'Pectoral, tríceps, hombro anterior' },
+    3: { focus: 'CARDIO Y CORE', muscles: 'Core, abdomen, cardio general' },
+    4: { focus: 'ESPALDA Y BÍCEPS', muscles: 'Dorsal, trapecio, bíceps, core posterior' },
+    5: { focus: 'HOMBROS Y CORE', muscles: 'Deltoides, trapecio, core, abdomen' },
+    6: { focus: 'FULL BODY', muscles: 'Cuerpo completo, circuito funcional' }
+  };
+  const todayPlan = weekPlan[dayIndex];
+
+  // Últimos 7 días de historial para evitar repetir ejercicios
+  const recentHistory = (state.history || []).slice(-7);
+  const recentExercises = recentHistory.flatMap(h => (h.exercises || []).map(e => e.name)).filter(Boolean);
+  const historialStr = recentExercises.length > 0
+    ? `- Ejercicios recientes (NO repetir): ${[...new Set(recentExercises)].join(', ')}`
+    : '- Sin historial previo (primera semana, genera rutina base)';
+
+  // Semanas entrenando para progresión
+  const totalWorkouts = state.totalWorkouts || 0;
+  const weekNumber = Math.floor(totalWorkouts / 5) + 1;
+
+  const prompt = `Eres un entrenador personal experto en pérdida de peso y ganancia muscular. Genera la rutina de hoy ${today}.
+
+PLAN DEL DÍA: ${todayPlan.focus}
+Grupos musculares: ${todayPlan.muscles}
 
 DATOS DEL USUARIO:
-- Nivel: Intermedio
-- Modo: ${selectedMode === 'fast' ? 'LIGERO (8 ejercicios + estiramiento final)' : 'INTENSO (13 ejercicios + estiramiento final)'}
-- Equipamiento: cuerpo, mancuernas, caminadora doméstica
-- Objetivo: Mix de fuerza y cardio
+- Semana de entrenamiento: ${weekNumber} (ajusta dificultad y progresión)
+- Tiempo disponible: 50 minutos máximo
+- Equipamiento: cuerpo, mancuernas
+- Objetivo: déficit calórico + ganancia muscular
+${historialStr}
 
-INSTRUCCIONES IMPORTANTES:
-- Genera EXACTAMENTE ${selectedMode === 'fast' ? 9 : 14} ejercicios (incluyendo estiramiento final)
-- Alterna intensidad: 2 ejercicios fuertes, 1 moderado para recuperar
-- 5 series por ejercicio (excepto caminadora 1 serie larga y estiramiento)
-- El estiramiento final debe tener duration_seconds: 120 (2 minutos)
-- Varía: fuerza con mancuernas, bodyweight, cardio, core, caminadora
-- Para ejercicios por lado indica side_exercise: true y reps "X por lado"
+INSTRUCCIONES:
+- Genera entre 8 y 12 ejercicios según el grupo muscular del día (incluye estiramiento final)
+- Adapta series, reps e intensidad a la semana ${weekNumber} de entrenamiento (más semanas = más exigente)
+- Asegura suficiente intensidad para generar gasto calórico significativo
+- NO repitas ejercicios del historial reciente
+- Para ejercicios por lado: side_exercise: true y reps "X por lado"
 - duration_seconds es el tiempo de UNA serie (o UN LADO si es side_exercise)
-- description DEBE ser pasos numerados en este formato exacto:
-  "1. Posición inicial. 2. Movimiento principal. 3. Regreso. 4. Respiración."
-  Cada paso separado por punto y espacio, máximo 5 pasos.
+- El estiramiento final debe tener duration_seconds: 120
+- kcal_per_set debe ser realista según la intensidad del ejercicio
 
 RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
 {
-  "focus": "FUERZA TOTAL",
+  "focus": "${todayPlan.focus}",
   "exercises": [
     {
       "name": "NOMBRE EN MAYÚSCULAS",
-      "type": "strength|cardio|treadmill|core|stretch",
-      "equipment": "bodyweight|dumbbell|treadmill",
-      "sets": 5,
+      "type": "strength|cardio|core|stretch",
+      "equipment": "bodyweight|dumbbell",
+      "sets": 4,
       "reps": "12",
       "duration_seconds": 40,
       "side_exercise": false,
       "kcal_per_set": 10,
-      "gif_search": "palabra clave corta para buscar GIF del ejercicio en inglés",
-      "description": "1. Posición inicial con pies al ancho de hombros. 2. Baja controlando el movimiento. 3. Sube de forma explosiva. 4. Mantén el core activado siempre.",
+      "gif_search": "keyword exercise",
       "muscles": ["músculo1", "músculo2"]
     }
   ]
@@ -1531,22 +1538,9 @@ function showExercise(index) {
   document.getElementById('ex-progress').style.width = `${(index / total) * 100}%`;
   document.getElementById('ex-name').textContent = ex.name;
   document.getElementById('ex-sets').textContent = `${ex.sets} SERIES · ${ex.reps}`;
-  // Render description as numbered steps
+  // Description eliminada — Claude ya no la genera
   const descEl = document.getElementById('ex-desc');
-  const desc = ex.description || '';
-  const steps = desc.split(/(?=\d+\.\s)/).map(s => s.trim()).filter(s => s.length > 0);
-  if (steps.length > 1) {
-    descEl.innerHTML = steps.map(s => {
-      const num = s.match(/^(\d+\.)/);
-      const text = s.replace(/^\d+\.\s*/, '');
-      return `<div style="display:flex;gap:8px;margin-bottom:8px;text-align:left;">
-        <span style="color:var(--hit-green);font-family:var(--font-display);font-size:14px;min-width:20px;">${num ? num[1] : ''}</span>
-        <span>${text}</span>
-      </div>`;
-    }).join('');
-  } else {
-    descEl.textContent = desc;
-  }
+  if (descEl) descEl.innerHTML = '';
 
   // Chips
   const chips = document.getElementById('ex-chips');
