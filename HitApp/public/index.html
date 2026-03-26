@@ -607,10 +607,6 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
     <!-- Chips -->
     <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;justify-content:center;" id="ex-chips"></div>
 
-    <!-- Description -->
-    <div class="card-dark" style="margin-bottom:16px;">
-      <p id="ex-desc" style="font-size:13px;line-height:1.7;color:#ccc;text-align:center;"></p>
-    </div>
 
     <!-- Auto timer -->
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:16px;">
@@ -1033,6 +1029,8 @@ document.addEventListener('visibilitychange', async () => {
     if (currentWorkout && currentWorkout.length > 0) {
       isPaused = true;
       saveWorkoutProgress();
+      const btn = document.getElementById('ex-pause-btn');
+      if (btn) btn.textContent = '▶ CONTINUAR';
     }
     const hasBiometric = localStorage.getItem('hit_biometric_registered');
     if (state.name && hasBiometric) sessionLocked = true;
@@ -1709,6 +1707,51 @@ function showExercise(index) {
   }
 }
 
+
+// ═══════════════════════════════════════
+// AUDIO FEEDBACK
+// ═══════════════════════════════════════
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playBeep(frequency, duration, volume = 0.3) {
+  try {
+    const oscillator = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+    gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    oscillator.start(audioCtx.currentTime);
+    oscillator.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playSound(type) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  switch(type) {
+    case 'prep':      // 1 pitido corto — inicia preparación
+      playBeep(880, 0.15);
+      break;
+    case 'exercise':  // 2 pitidos rápidos — inicia ejercicio
+      playBeep(1047, 0.15);
+      setTimeout(() => playBeep(1047, 0.15), 200);
+      break;
+    case 'rest':      // 1 pitido largo — inicia descanso
+      playBeep(523, 0.5);
+      break;
+    case 'transition': // 3 pitidos — cambio de ejercicio
+      playBeep(784, 0.12);
+      setTimeout(() => playBeep(784, 0.12), 180);
+      setTimeout(() => playBeep(1047, 0.25), 360);
+      break;
+    case 'countdown': // beep de cuenta regresiva (últimos 3 seg)
+      playBeep(660, 0.1, 0.2);
+      break;
+  }
+}
+
 function startPhase(phase) {
   clearInterval(autoInterval);
   autoPhase = phase;
@@ -1718,16 +1761,20 @@ function startPhase(phase) {
     autoTotal = 10;
     autoSeconds = 10;
     updateAutoDisplay('PREPÁRATE', '#fff', `Serie ${currentSerie} de ${ex.sets}`);
+    playSound('prep');
   } else if (phase === 'exercise') {
     autoTotal = ex.duration_seconds || 40;
     autoSeconds = autoTotal;
     const sideLabel = ex.side_exercise ? (autoSide === 'left' ? ' — LADO IZQUIERDO' : ' — LADO DERECHO') : '';
     updateAutoDisplay(ex.name + sideLabel, '#D6FF00', `Serie ${currentSerie}/${ex.sets} · ${ex.reps}`);
+    playSound('exercise');
   } else if (phase === 'rest') {
     autoTotal = 8;
     autoSeconds = 8;
     updateAutoDisplay('DESCANSA', '#fff', `Siguiente: Serie ${currentSerie} de ${ex.sets}`);
+    playSound('rest');
   } else if (phase === 'transition') {
+    playSound('transition');
     autoTotal = 20;
     autoSeconds = 20;
     const next = currentWorkout[currentExIndex + 1];
@@ -1752,6 +1799,7 @@ function startPhase(phase) {
     updateTimerRing();
     if (autoPhase === 'transition') updateTransitionDisplay();
     saveWorkoutProgress();
+    if (autoSeconds > 0 && autoSeconds <= 3) playSound('countdown');
     if (autoSeconds <= 0) {
       clearInterval(autoInterval);
       nextPhase();
