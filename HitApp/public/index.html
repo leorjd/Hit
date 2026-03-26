@@ -1485,7 +1485,7 @@ async function generateWorkout() {
 
   // Últimos 7 días de historial para evitar repetir ejercicios
   const recentHistory = (state.history || []).slice(-7);
-  const recentExercises = recentHistory.flatMap(h => (h.exercises || []).map(e => e.name)).filter(Boolean);
+  const recentExercises = recentHistory.flatMap(h => (h.exerciseList || h.exercises || []).map(e => e.name)).filter(Boolean);
   const historialStr = recentExercises.length > 0
     ? `- Ejercicios recientes (NO repetir): ${[...new Set(recentExercises)].join(', ')}`
     : '- Sin historial previo (primera semana, genera rutina base)';
