@@ -1543,7 +1543,16 @@ RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
     });
 
     clearInterval(msgInterval);
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('API error:', response.status, errText);
+      throw new Error('API ' + response.status);
+    }
     const data = await response.json();
+    if (!data.content || !data.content[0]) {
+      console.error('Respuesta inesperada:', JSON.stringify(data));
+      throw new Error('Sin contenido');
+    }
     const text = data.content[0].text.trim();
     const clean = text.replace(/```json|```/g, '').trim();
     const workout = JSON.parse(clean);
@@ -1554,6 +1563,8 @@ RESPONDE ÚNICAMENTE con JSON válido, sin texto adicional:
     showExercise(0);
   } catch(e) {
     clearInterval(msgInterval);
+    console.error('generateWorkout error:', e);
+    showToast('Error generando rutina', e.message || 'Verifica tu conexión');
     // Fallback workout
     currentWorkout = getFallbackWorkout(selectedMode);
     currentExIndex = 0;
