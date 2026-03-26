@@ -988,6 +988,10 @@ function releaseWakeLock() {
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'hidden') {
     releaseWakeLock();
+    // Guardar progreso exacto si hay workout activo
+    if (currentWorkout && currentWorkout.length > 0) {
+      saveWorkoutProgress();
+    }
     const hasBiometric = localStorage.getItem('hit_biometric_registered');
     if (state.name && hasBiometric) sessionLocked = true;
   } else {
@@ -1016,6 +1020,7 @@ async function init() {
       workoutKcal = p.kcal || 0;
       workoutStartTime = p.startTime || Date.now();
       selectedMode = p.mode || 'fast';
+      autoSide = p.side || 'left';
       workoutProgress = p;
     }
   } catch(e) {}
@@ -1576,9 +1581,35 @@ function showExercise(index) {
 
   goTo('screen-exercise');
 
-  // Start auto-run: 10sec prep then first serie
-  autoSide = 'left';
-  startPhase('prep');
+  // Resume exact phase/seconds if returning to same exercise, else start fresh
+  autoSide = (resumingSameExercise && workoutProgress.side) ? workoutProgress.side : 'left';
+  if (resumingSameExercise && workoutProgress.phase && workoutProgress.seconds > 0) {
+    autoPhase = workoutProgress.phase;
+    autoSeconds = workoutProgress.seconds;
+    autoTotal = workoutProgress.total || 10;
+    const ex2 = currentWorkout[index];
+    if (autoPhase === 'exercise') {
+      const sideLabel = ex2.side_exercise ? (autoSide === 'left' ? ' — LADO IZQUIERDO' : ' — LADO DERECHO') : '';
+      updateAutoDisplay(ex2.name + sideLabel, '#D6FF00', `Serie ${currentSerie}/${ex2.sets} · ${ex2.reps}`);
+    } else if (autoPhase === 'prep') {
+      updateAutoDisplay('PREPÁRATE', '#fff', `Serie ${currentSerie} de ${ex2.sets}`);
+    } else if (autoPhase === 'rest') {
+      updateAutoDisplay('DESCANSA', '#fff', `Siguiente: Serie ${currentSerie} de ${ex2.sets}`);
+    }
+    updateTimerRing();
+    autoInterval = setInterval(() => {
+      if (isPaused) return;
+      autoSeconds--;
+      updateTimerRing();
+      saveWorkoutProgress();
+      if (autoSeconds <= 0) {
+        clearInterval(autoInterval);
+        nextPhase();
+      }
+    }, 1000);
+  } else {
+    startPhase('prep');
+  }
 }
 
 function startPhase(phase) {
@@ -1623,6 +1654,7 @@ function startPhase(phase) {
     autoSeconds--;
     updateTimerRing();
     if (autoPhase === 'transition') updateTransitionDisplay();
+    saveWorkoutProgress();
     if (autoSeconds <= 0) {
       clearInterval(autoInterval);
       nextPhase();
@@ -1703,7 +1735,11 @@ function saveWorkoutProgress() {
     serie: currentSerie,
     kcal: workoutKcal,
     startTime: workoutStartTime,
-    mode: selectedMode
+    mode: selectedMode,
+    phase: autoPhase,
+    seconds: autoSeconds,
+    total: autoTotal,
+    side: autoSide
   };
   try { localStorage.setItem('hit_workout_progress', JSON.stringify(workoutProgress)); } catch(e) {}
 }
