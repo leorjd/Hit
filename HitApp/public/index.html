@@ -988,8 +988,9 @@ function releaseWakeLock() {
 document.addEventListener('visibilitychange', async () => {
   if (document.visibilityState === 'hidden') {
     releaseWakeLock();
-    // Guardar progreso exacto si hay workout activo
+    // Pausar timer y guardar progreso exacto si hay workout activo
     if (currentWorkout && currentWorkout.length > 0) {
+      isPaused = true;
       saveWorkoutProgress();
     }
     const hasBiometric = localStorage.getItem('hit_biometric_registered');
