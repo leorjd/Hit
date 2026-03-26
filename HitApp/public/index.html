@@ -324,6 +324,36 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
       </div>
     </div>
 
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:24px;width:100%;max-width:320px;">
+      <div class="input-wrap">
+        <label class="label" style="text-align:left;">Tiempo disponible para entrenar</label>
+        <select id="ob-time" class="hit-input" style="appearance:none;">
+          <option value="30">30 minutos</option>
+          <option value="45">45 minutos</option>
+          <option value="50" selected>50 minutos</option>
+          <option value="60">60 minutos</option>
+        </select>
+      </div>
+      <div class="input-wrap">
+        <label class="label" style="text-align:left;margin-bottom:10px;">¿Con qué equipo entrenas?</label>
+        <div id="ob-equipment" style="display:flex;flex-direction:column;gap:8px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Mancuernas" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Mancuernas</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Pesas rusas (kettlebell)" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Pesas rusas (kettlebell)</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Barra con discos" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Barra con discos</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Caminadora" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Caminadora</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Bicicleta estática" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Bicicleta estática</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Cuerda para saltar" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Cuerda para saltar</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Bandas de resistencia" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Bandas de resistencia</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="TRX / suspensión" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">TRX / suspensión</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Cajón pliométrico" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Cajón pliométrico</span></label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Colchoneta" style="accent-color:#D6FF00;width:18px;height:18px;" checked> <span style="font-size:14px;">Colchoneta</span></label>
+        </div>
+        <div style="margin-top:10px;">
+          <input id="ob-equipment-custom" class="hit-input" type="text" placeholder="Otro equipo (opcional)" style="font-size:13px;"/>
+        </div>
+      </div>
+    </div>
+
     <button class="btn-primary" style="max-width:320px;" onclick="completeOnboarding()">CREAR CUENTA →</button>
 
     <p class="caption" style="text-align:center;margin-top:16px;">
@@ -789,7 +819,35 @@ body{font-family:var(--font-body);color:#fff;touch-action:manipulation;}
         <input id="profile-weight-input" class="hit-input" type="number" inputmode="decimal"/>
       </div>
     </div>
+    <div class="input-wrap" style="margin-bottom:12px;">
+      <label class="label">Tiempo disponible para entrenar</label>
+      <select id="profile-time-input" class="hit-input" style="appearance:none;">
+        <option value="30">30 minutos</option>
+        <option value="45">45 minutos</option>
+        <option value="50">50 minutos</option>
+        <option value="60">60 minutos</option>
+      </select>
+    </div>
+
     <button class="btn-primary" onclick="saveProfile()" style="margin-bottom:16px;">GUARDAR CAMBIOS</button>
+
+    <div class="label" style="margin-bottom:10px;">Equipamiento disponible</div>
+    <div id="profile-equipment" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Mancuernas" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Mancuernas</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Pesas rusas (kettlebell)" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Pesas rusas (kettlebell)</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Barra con discos" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Barra con discos</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Caminadora" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Caminadora</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Bicicleta estática" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Bicicleta estática</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Cuerda para saltar" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Cuerda para saltar</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Bandas de resistencia" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Bandas de resistencia</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="TRX / suspensión" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">TRX / suspensión</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Cajón pliométrico" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Cajón pliométrico</span></label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;"><input type="checkbox" value="Colchoneta" style="accent-color:#D6FF00;width:18px;height:18px;"> <span style="font-size:14px;">Colchoneta</span></label>
+    </div>
+    <div style="margin-bottom:16px;">
+      <input id="profile-equipment-custom" class="hit-input" type="text" placeholder="Otro equipo (opcional)" style="font-size:13px;"/>
+    </div>
+    <button class="btn-outline" onclick="saveEquipment()" style="margin-bottom:16px;">GUARDAR EQUIPAMIENTO</button>
 
     <div class="divider"></div>
     <button class="btn-ghost" onclick="logout()" style="margin-bottom:12px;">CERRAR SESIÓN</button>
@@ -841,7 +899,9 @@ let state = {
   name: '', weight: 65, hasBiometric: false,
   streak: 0, lastWorkoutDate: null,
   totalWorkouts: 0, totalKcal: 0,
-  history: []
+  history: [],
+  equipment: [],
+  availableTime: 50
 };
 
 let currentWorkout = [];
@@ -1037,6 +1097,8 @@ async function init() {
         state.totalKcal = profile.total_kcal || 0;
         state.history = profile.history || [];
         state.userId = session.user.id;
+        state.equipment = profile.equipment || [];
+        state.availableTime = profile.available_time || 50;
         
         loadHome();
         if (workoutProgress) {
@@ -1090,6 +1152,10 @@ async function completeOnboarding() {
   const email = document.getElementById('ob-email').value.trim();
   const password = document.getElementById('ob-password').value;
   const weight = parseFloat(document.getElementById('ob-weight').value);
+  const availableTime = parseInt(document.getElementById('ob-time').value) || 50;
+  const equipmentChecked = [...document.querySelectorAll('#ob-equipment input[type=checkbox]:checked')].map(c => c.value);
+  const customEquipment = document.getElementById('ob-equipment-custom').value.trim();
+  if (customEquipment) equipmentChecked.push(customEquipment);
   
   if (!name) { showToast('¡Falta tu nombre!', 'Escríbelo para continuar'); return; }
   if (!email || !email.includes('@')) { showToast('Email inválido', 'Ingresa un email válido'); return; }
@@ -1118,7 +1184,9 @@ async function completeOnboarding() {
         streak: 0,
         total_workouts: 0,
         total_kcal: 0,
-        history: []
+        history: [],
+        equipment: equipmentChecked,
+        available_time: availableTime
       }]);
     
     if (profileError) {
@@ -1129,6 +1197,8 @@ async function completeOnboarding() {
     state.name = name;
     state.weight = weight;
     state.userId = authData.user.id;
+    state.equipment = equipmentChecked;
+    state.availableTime = availableTime;
     
     showToast('¡Cuenta creada!', 'Bienvenido a HIT');
     setTimeout(() => {
@@ -1183,6 +1253,8 @@ async function loginWithEmail() {
     state.totalKcal = profile.total_kcal || 0;
     state.history = profile.history || [];
     state.userId = authData.user.id;
+    state.equipment = profile.equipment || [];
+    state.availableTime = profile.available_time || 50;
     
     // Verificar si ya tiene huella registrada
     const hasBiometric = localStorage.getItem('hit_biometric_registered');
@@ -1297,6 +1369,8 @@ async function unlockWithBiometric() {
       state.totalKcal = profile.total_kcal || 0;
       state.history = profile.history || [];
       state.userId = session.user.id;
+      state.equipment = profile.equipment || [];
+      state.availableTime = profile.available_time || 50;
       
       loadHome();
       
@@ -1427,8 +1501,8 @@ Grupos musculares: ${todayPlan.muscles}
 
 DATOS DEL USUARIO:
 - Semana de entrenamiento: ${weekNumber} (ajusta dificultad y progresión)
-- Tiempo disponible: 50 minutos máximo
-- Equipamiento: cuerpo, mancuernas
+- Tiempo disponible: ${state.availableTime || 50} minutos máximo
+- Equipamiento: cuerpo${state.equipment && state.equipment.length > 0 ? ', ' + state.equipment.join(', ') : ''}
 - Objetivo: déficit calórico + ganancia muscular
 ${historialStr}
 
@@ -1971,7 +2045,22 @@ function loadProfile() {
   document.getElementById('profile-weight').textContent = `${state.weight} kg`;
   document.getElementById('profile-name-input').value = state.name;
   document.getElementById('profile-weight-input').value = state.weight;
-  
+
+  // Cargar tiempo disponible
+  const timeSelect = document.getElementById('profile-time-input');
+  if (timeSelect) timeSelect.value = state.availableTime || 50;
+
+  // Cargar equipamiento - marcar checkboxes
+  const equipment = state.equipment || [];
+  document.querySelectorAll('#profile-equipment input[type=checkbox]').forEach(cb => {
+    cb.checked = equipment.includes(cb.value);
+  });
+  // Custom equipment (los que no están en los checkboxes predefinidos)
+  const predefined = ['Mancuernas','Pesas rusas (kettlebell)','Barra con discos','Caminadora','Bicicleta estática','Cuerda para saltar','Bandas de resistencia','TRX / suspensión','Cajón pliométrico','Colchoneta'];
+  const custom = equipment.filter(e => !predefined.includes(e)).join(', ');
+  const customInput = document.getElementById('profile-equipment-custom');
+  if (customInput) customInput.value = custom;
+
   // Mostrar botón de eliminar huella si está registrada
   const hasBiometric = localStorage.getItem('hit_biometric_registered');
   const btn = document.getElementById('remove-biometric-btn');
@@ -1985,6 +2074,7 @@ function loadProfile() {
 async function saveProfile() {
   const name = document.getElementById('profile-name-input').value.trim();
   const weight = parseFloat(document.getElementById('profile-weight-input').value);
+  const availableTime = parseInt(document.getElementById('profile-time-input').value) || 50;
   if (!name || !weight) { showToast('Datos incompletos', 'Revisa nombre y peso'); return; }
   
   if (!state.userId) {
@@ -1995,7 +2085,7 @@ async function saveProfile() {
   try {
     const { error } = await supabaseClient
       .from('users')
-      .update({ name, weight })
+      .update({ name, weight, available_time: availableTime })
       .eq('user_id', state.userId);
     
     if (error) {
@@ -2005,8 +2095,31 @@ async function saveProfile() {
     
     state.name = name;
     state.weight = weight;
+    state.availableTime = availableTime;
     loadProfile();
     showToast('¡Guardado!', 'Tu perfil fue actualizado');
+  } catch(e) {
+    showToast('Error', 'Verifica tu conexión');
+  }
+}
+
+async function saveEquipment() {
+  const equipmentChecked = [...document.querySelectorAll('#profile-equipment input[type=checkbox]:checked')].map(c => c.value);
+  const customEquipment = document.getElementById('profile-equipment-custom').value.trim();
+  if (customEquipment) equipmentChecked.push(customEquipment);
+
+  if (!state.userId) { showToast('Error', 'No se pudo actualizar'); return; }
+
+  try {
+    const { error } = await supabaseClient
+      .from('users')
+      .update({ equipment: equipmentChecked })
+      .eq('user_id', state.userId);
+
+    if (error) { showToast('Error', 'No se pudo guardar en la nube'); return; }
+
+    state.equipment = equipmentChecked;
+    showToast('¡Guardado!', 'Equipamiento actualizado');
   } catch(e) {
     showToast('Error', 'Verifica tu conexión');
   }
