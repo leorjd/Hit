@@ -1567,8 +1567,15 @@ function showExercise(index) {
 
   // Hide finish button (shows only when last exercise completes)
   document.getElementById('ex-finish-btn').style.display = 'none';
-  document.getElementById('ex-pause-btn').textContent = '⏸ PAUSAR';
-  isPaused = false;
+  // Si es retomar workout pausado, arrancar en pausa esperando que el usuario presione continuar
+  const isResuming = workoutProgress && workoutProgress.exIndex === index && workoutProgress.phase && workoutProgress.seconds > 0;
+  if (isResuming) {
+    isPaused = true;
+    document.getElementById('ex-pause-btn').textContent = '▶ CONTINUAR';
+  } else {
+    isPaused = false;
+    document.getElementById('ex-pause-btn').textContent = '⏸ PAUSAR';
+  }
 
   // ALWAYS reset serie counter when showing a new exercise
   // (unless we're resuming the EXACT same exercise from a pause)
