@@ -1070,6 +1070,16 @@ async function init() {
 function goTo(screenId) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(screenId).classList.add('active');
+  if (screenId === 'screen-home') {
+    const dayIndex = new Date().getDay();
+    const isRest = dayIndex === 0 || dayIndex === 6;
+    const btn = document.getElementById('start-btn');
+    if (btn) {
+      btn.disabled = isRest;
+      btn.querySelector('span').textContent = isRest ? '💤 HOY ES DÍA DE DESCANSO' : '⚡ GENERAR RUTINA DE HOY';
+      btn.style.opacity = isRest ? '0.4' : '1';
+    }
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1389,13 +1399,13 @@ async function generateWorkout() {
 
   // Plan semanal fijo (0=dom, 1=lun, ..., 6=sab)
   const weekPlan = {
-    0: { focus: 'DESCANSO ACTIVO / MOVILIDAD', muscles: 'Cuerpo completo (estiramientos y movilidad)' },
+    0: { focus: 'DESCANSO', muscles: 'Descanso completo, sin entrenamiento' },
     1: { focus: 'PIERNAS Y GLÚTEOS', muscles: 'Cuádriceps, femoral, glúteos, pantorrillas' },
     2: { focus: 'PECHO Y TRÍCEPS', muscles: 'Pectoral, tríceps, hombro anterior' },
     3: { focus: 'CARDIO Y CORE', muscles: 'Core, abdomen, cardio general' },
     4: { focus: 'ESPALDA Y BÍCEPS', muscles: 'Dorsal, trapecio, bíceps, core posterior' },
     5: { focus: 'HOMBROS Y CORE', muscles: 'Deltoides, trapecio, core, abdomen' },
-    6: { focus: 'FULL BODY', muscles: 'Cuerpo completo, circuito funcional' }
+    6: { focus: 'DESCANSO', muscles: 'Descanso completo, sin entrenamiento' }
   };
   const todayPlan = weekPlan[dayIndex];
 
