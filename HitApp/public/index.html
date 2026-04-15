@@ -1498,15 +1498,22 @@ PLAN DEL DÍA: ${todayPlan.focus}
 Grupos musculares: ${todayPlan.muscles}
 
 DATOS DEL USUARIO:
-- Semana de entrenamiento: ${weekNumber} (ajusta dificultad y progresión)
+- Semana de entrenamiento: ${weekNumber}
 - Tiempo disponible: ${state.availableTime || 50} minutos máximo
 - Equipamiento: cuerpo${state.equipment && state.equipment.length > 0 ? ', ' + state.equipment.join(', ') : ''}
 - Objetivo: déficit calórico + ganancia muscular
 ${historialStr}
 
+PROGRESIÓN OBLIGATORIA según semana:
+- Semana 1-2: 3 series por ejercicio, reps bajas, ejercicios básicos
+- Semana 3-4: 4 series, reps moderadas, agrega variantes
+- Semana 5-6: 4-5 series, reps altas o tiempo mayor, ejercicios compuestos
+- Semana 7+: 5 series, máxima intensidad, superseries o circuitos
+- Semana actual: ${weekNumber} — aplica el nivel correspondiente ESTRICTAMENTE
+
 INSTRUCCIONES:
 - Genera entre 8 y 12 ejercicios según el grupo muscular del día (incluye estiramiento final)
-- Adapta series, reps e intensidad a la semana ${weekNumber} de entrenamiento (más semanas = más exigente)
+- Aplica la progresión de la semana ${weekNumber} sin excepción
 - La rutina completa debe quemar entre 500 y 800 kcal en total — ajusta series, reps e intensidad para llegar a ese rango
 - kcal_per_set mínimo: 8 para ejercicios de core/estiramiento, 12-20 para fuerza, 15-25 para cardio/HIIT
 - NO repitas ejercicios del historial reciente
@@ -2011,6 +2018,7 @@ function finishWorkout() {
   };
   updateWorkoutInSupabase(workoutData);
 
+  currentWorkout = [];
   goTo('screen-summary');
   launchConfetti();
 }
@@ -2031,6 +2039,8 @@ function closeQuit() {
 }
 function quitWorkout() {
   clearInterval(autoInterval);
+  clearWorkoutProgress();
+  currentWorkout = [];
   document.getElementById('overlay-quit').classList.remove('open');
   loadHome();
   goTo('screen-home');
