@@ -1758,6 +1758,12 @@ function playSound(type) {
     case 'countdown': // beep de cuenta regresiva (últimos 3 seg)
       playBeep(660, 0.1, 0.2);
       break;
+    case 'victory': // fanfarria al terminar
+      const notes = [523, 659, 784, 1047, 1319, 1047, 1319, 1568];
+      const times = [0, 120, 240, 360, 500, 650, 750, 850];
+      const durs  = [0.15, 0.15, 0.15, 0.2, 0.3, 0.15, 0.15, 0.5];
+      notes.forEach((f, i) => setTimeout(() => playBeep(f, durs[i], 0.4), times[i]));
+      break;
   }
 }
 
@@ -2021,6 +2027,7 @@ function finishWorkout() {
   updateWorkoutInSupabase(workoutData);
 
   currentWorkout = [];
+  playSound('victory');
   goTo('screen-summary');
   launchConfetti();
 }
